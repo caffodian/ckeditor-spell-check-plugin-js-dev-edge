@@ -76,7 +76,11 @@
 			// the text content of ckeditor bookmarks must also be excluded
 			// or &nbsp; will be added throughout.
 
-			var path = new CKEDITOR.dom.elementPath(node, startNode);
+			var path = new CKEDITOR.dom.elementPath(node, startNode),
+				block = path.block,
+				blockIsStartNode = block && block.equals(startNode),
+				blockLimit = path.blockLimit,
+				blockLimitIsStartNode = blockLimit && blockLimit.equals(startNode);
 
 			// tables and list items can get a bit weird with getNextParagraph()
 			// for example causing list item descendants to be included as part of the original list item
@@ -87,14 +91,14 @@
 				node.getLength() > 0 &&  // and it's not empty
 				( !node.isReadOnly() ) &&   // or read only
 				isNotBookmark(node) && // and isn't a fake bookmarking node
-				(path.blockLimit ? path.blockLimit.equals(startNode) : true) && // check we don't enter another block-like element
-				(path.block ? path.block.equals(startNode) : true); // check we don't enter nested blocks (special list case since it's not considered a limit)
+				(blockLimit ? blockLimitIsStartNode : true) && // check we don't enter another block-like element
+				(block ? blockIsStartNode : true); // check we don't enter nested blocks (special list case since it's not considered a limit)
 
 			// If it's not a rootBlock text node, check to see if we hit a nested block element
 			if (!condition) {
 				if (isNotBookmark(node) &&
-				 	((path.blockLimit && !path.blockLimit.equals(startNode)) ||
-					(path.block && !path.block.equals(startNode)))) {
+				 	((blockLimit && !blockLimitIsStartNode) ||
+					(block && !blockIsStartNode))) {
 
 					ww.hitNestedBlock = true;
 				}
