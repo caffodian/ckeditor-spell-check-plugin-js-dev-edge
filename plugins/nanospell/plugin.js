@@ -65,6 +65,9 @@
 		var startNode = range.startContainer;
 		var endNode = range.endContainer;
 
+		var self = this;
+		this.hitNestedBlock = false;
+
 		function isRootBlockTextNode(node) {
 			// this function is an evaluator used to return only
 			// the text nodes in the walker.
@@ -86,6 +89,16 @@
 				isNotBookmark(node) && // and isn't a fake bookmarking node
 				(path.blockLimit ? path.blockLimit.equals(startNode) : true) && // check we don't enter another block-like element
 				(path.block ? path.block.equals(startNode) : true); // check we don't enter nested blocks (special list case since it's not considered a limit)
+
+			// If it's not a rootBlock text node, check to see if we hit a nested block element
+			if (!condition) {
+				if (isNotBookmark(node) &&
+				 	((path.blockLimit && !path.blockLimit.equals(startNode)) ||
+					(path.block && !path.block.equals(startNode)))) {
+
+					self.hitNestedBlock = true;
+				}
+			}
 
 			return condition;
 		}
@@ -140,6 +153,16 @@
 			wordRange.setStart(currentTextNode, this.offset);
 
 			while (currentTextNode !== null) {
+				// this if block returns the word and range if we still have valid
+				// text nodes but there was a nested block element between text nodes.
+				// this can occur in nested lists.
+				if (text && i === text.length && this.hitNestedBlock) {
+					this.hitNestedBlock = false;
+					return {
+						word: word,
+						range: wordRange
+					}
+				}
 				text = currentTextNode.getText();
 				for (i = this.offset; i < text.length; i++) {
 					if (this.isWordSeparator(text[i])) {
