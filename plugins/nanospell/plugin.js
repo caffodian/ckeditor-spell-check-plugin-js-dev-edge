@@ -195,7 +195,6 @@
 			lang = this.settings.dictionary || lang;
 			// set the maximum number of block elements spellchecked per AJAX request
 			BLOCK_REQUEST_LIMIT = this.settings.blockRequestLimit || BLOCK_REQUEST_LIMIT;
-			debugger;
 			editor.addCommand('nanospell', {
 				exec: function (editor) {
 					if (!commandIsActive) {
