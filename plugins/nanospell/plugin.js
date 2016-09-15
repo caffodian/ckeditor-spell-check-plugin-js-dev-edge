@@ -65,8 +65,8 @@
 		var startNode = range.startContainer;
 		var endNode = range.endContainer;
 
-		var self = this;
-		this.hitNestedBlock = false;
+		var ww = this;
+		ww.hitNestedBlock = false;
 
 		function isRootBlockTextNode(node) {
 			// this function is an evaluator used to return only
@@ -96,37 +96,38 @@
 				 	((path.blockLimit && !path.blockLimit.equals(startNode)) ||
 					(path.block && !path.block.equals(startNode)))) {
 
-					self.hitNestedBlock = true;
+					ww.hitNestedBlock = true;
 				}
 			}
 
 			return condition;
 		}
 
-		this.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(range);
-		this.rootBlockTextNodeWalker.evaluator = isRootBlockTextNode;
+		ww.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(range);
+		ww.rootBlockTextNodeWalker.evaluator = isRootBlockTextNode;
 
 		var wordSeparatorRegex = /[.,"'?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
 
-		this.isWordSeparator = function (character) {
+		ww.isWordSeparator = function (character) {
 			if (!character)
 				return true;
 			var code = character.charCodeAt(0);
 			return ( code >= 9 && code <= 0xd ) || ( code >= 0x2000 && code <= 0x200a ) || wordSeparatorRegex.test(character);
 		};
 
-		this.textNode = this.rootBlockTextNodeWalker.next();
-		this.offset = 0;
-		this.origRange = range;
+		ww.textNode = ww.rootBlockTextNodeWalker.next();
+		ww.offset = 0;
+		ww.origRange = range;
 	}
 
 	WordWalker.prototype = {
 		getOffsetToNextNonSeparator: function (text, startIndex) {
 			var i, length;
 			length = text.length;
+			var ww = this;
 
 			for (i = startIndex + 1; i < length; i++) {
-				if (!this.isWordSeparator(text[i])) {
+				if (!ww.isWordSeparator(text[i])) {
 					break;
 				}
 			}
@@ -135,14 +136,15 @@
 
 		},
 		getNextWord: function () {
+			var ww = this;
 
 			// iterate through each of the text nodes in the walker
 			// break, store current offset, and return a range when finding a word separator
 			// until all text nodes in the walker are exhausted.
 
 			var word = '';
-			var currentTextNode = this.textNode;
-			var wordRange = this.origRange.clone();
+			var currentTextNode = ww.textNode;
+			var wordRange = ww.origRange.clone();
 			var i;
 			var text;
 
@@ -150,26 +152,26 @@
 				return null;
 			}
 
-			wordRange.setStart(currentTextNode, this.offset);
+			wordRange.setStart(currentTextNode, ww.offset);
 
 			while (currentTextNode !== null) {
 				// this if block returns the word and range if we still have valid
 				// text nodes but there was a nested block element between text nodes.
 				// this can occur in nested lists.
-				if (text && i === text.length && this.hitNestedBlock) {
-					this.hitNestedBlock = false;
+				if (text && i === text.length && ww.hitNestedBlock) {
+					ww.hitNestedBlock = false;
 					return {
 						word: word,
 						range: wordRange
 					}
 				}
 				text = currentTextNode.getText();
-				for (i = this.offset; i < text.length; i++) {
-					if (this.isWordSeparator(text[i])) {
-						word += text.substr(this.offset, i - this.offset);
+				for (i = ww.offset; i < text.length; i++) {
+					if (ww.isWordSeparator(text[i])) {
+						word += text.substr(ww.offset, i - ww.offset);
 						wordRange.setEnd(currentTextNode, i);
 
-						this.offset = this.getOffsetToNextNonSeparator(text, i);
+						ww.offset = ww.getOffsetToNextNonSeparator(text, i);
 
 						return {
 							word: word,
@@ -177,12 +179,12 @@
 						}
 					}
 				}
-				word += text.substr(this.offset);
-				this.offset = 0;
-				wordRange.setEndAfter(this.textNode);
-				currentTextNode = this.rootBlockTextNodeWalker.next();
+				word += text.substr(ww.offset);
+				ww.offset = 0;
+				wordRange.setEndAfter(ww.textNode);
+				currentTextNode = ww.rootBlockTextNodeWalker.next();
 
-				this.textNode = currentTextNode;
+				ww.textNode = currentTextNode;
 
 			}
 			// reached the end of block,
