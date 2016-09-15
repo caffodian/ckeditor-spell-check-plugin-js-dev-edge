@@ -8,7 +8,8 @@
 		config: {
 			enterMode: CKEDITOR.ENTER_P,
 			nanospell: {
-				autostart: false
+				autostart: false,
+				blockRequestLimit: 5
 			}
 		}
 	};
@@ -70,8 +71,8 @@
 			function triggerSecondParagraphSpellcheck() {
 				// first run checks the whole document.  Since the spellcheck first
 				// splits the document into blocks, all events other than
-				// "startScanWords" will be fired twice.
-				observer.assert(["spellCheckComplete", "startRender", "startCheckWordsAjax", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
+				// "startScanWords" and "startCheckWordsAjax" will be fired twice.
+				observer.assert(["spellCheckComplete", "startRender", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
 
 				// make a new observer to clear the events
 
@@ -130,7 +131,7 @@
 
 				function completeFirstSpellcheck() {
 
-					observer.assert(["spellCheckComplete", "startRender", "startCheckWordsAjax", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
+					observer.assert(["spellCheckComplete", "startRender", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
 
 					// set outer li to show that a spellcheck is in progress
 					outer.setCustomData('spellCheckInProgress', true);
@@ -155,6 +156,46 @@
 					observer.assertRootIs(inner);
 					observer.assert(["spellCheckAbort"]);
 				}
+		},
+		'test spellcheck can batch ajax calls for a document with multiple blocks': function() {
+			var bot = this.editorBot,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter,
+				observer = observeSpellCheckEvents(editor),
+				fiveBlockHtml = '<p>This</p><p>is</p><ul><li>five</li><li>block</li></ul><p>test</p>',
+				sixBlockHtml = '<p>This</p><p>is</p><p>a</p><ul><li>six</li><li>block</li></ul><p>one</p>';
+
+				bot.setData(fiveBlockHtml, function () {
+					resumeAfter(editor, 'spellCheckComplete', function () {
+						observer.assertAjaxCalls(1);
+
+						// reset observer
+						observer = observeSpellCheckEvents(editor);
+
+						// stop the plugin
+						editor.execCommand('nanospell');
+
+						// reset data with six-block html. Confirms that an additional AJAX
+						// call occurs when the number of blocks is increased over the limit
+						bot.setData(sixBlockHtml, function () {
+							resumeAfter(editor, 'spellCheckComplete', function () {
+								observer.assertAjaxCalls(2);
+							});
+
+							// restart spellcheck
+							editor.execCommand('nanospell');
+
+							wait();
+						});
+					});
+
+					// start spellcheck
+					editor.execCommand('nanospell');
+
+					wait();
+				});
+
+
 		}
 	});
 
@@ -206,6 +247,21 @@
 				assert.isTrue(root.equals(expectedRoot));
 			}
 		};
+
+		observer.assertAjaxCalls = function(expected) {
+			var events = observer.events,
+				ajaxCalls = 0,
+				event,
+				i;
+
+			for (i=0; i<events.length; i++) {
+				event = events[i];
+				if (event.name === 'startCheckWordsAjax')
+					ajaxCalls++;
+			}
+
+			assert.areSame(expected, ajaxCalls);
+		}
 
 		return observer;
 	}
