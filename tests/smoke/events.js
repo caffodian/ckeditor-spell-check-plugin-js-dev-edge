@@ -155,6 +155,47 @@
 					observer.assertRootIs(inner);
 					observer.assert(["spellCheckAbort"]);
 				}
+		},
+		'test spellcheck can batch ajax calls for a document with multiple blocks': function() {
+			var bot = this.editorBot,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter,
+				observer = observeSpellCheckEvents(editor),
+				fiveBlockHtml = '<p>This</p><p>is</p><ul><li>five</li><li>block</li></ul><p>test</p>',
+				sixBlockHtml = '<p>This</p><p>is</p><p>a</p><ul><li>six</li><li>block</li></ul><p>test</p>';
+
+				// this test assumes that the BLOCK_REQUEST_LIMIT is set to the default
+				// of 5 blocks per AJAX request
+
+				bot.setData(fiveBlockHtml, function () {
+					resumeAfter(editor, 'spellCheckComplete', function () {
+						observer.assertAjaxCalls(1);
+
+						// reset observer
+						observer = observeSpellCheckEvents(editor);
+
+						// stop the plugin
+						editor.execCommand('nanospell');
+
+						bot.setData(sixBlockHtml, function () {
+							resumeAfter(editor, 'spellCheckComplete', function () {
+								observer.assertAjaxCalls(2);
+							});
+
+							// restart spellcheck
+							editor.execCommand('nanospell');
+
+							wait();
+						});
+					});
+
+					// start spellcheck
+					editor.execCommand('nanospell');
+
+					wait();
+				});
+
+
 		}
 	});
 
@@ -206,6 +247,21 @@
 				assert.isTrue(root.equals(expectedRoot));
 			}
 		};
+
+		observer.assertAjaxCalls = function(expected) {
+			var events = observer.events,
+				ajaxCalls = 0,
+				event,
+				i;
+
+			for (i=0; i<events.length; i++) {
+				event = events[i];
+				if (event.name === 'startCheckWordsAjax')
+					ajaxCalls++;
+			}
+
+			assert.areSame(expected, ajaxCalls);
+		}
 
 		return observer;
 	}
