@@ -162,7 +162,7 @@
 				resumeAfter = bender.tools.resumeAfter,
 				observer = observeSpellCheckEvents(editor),
 				fiveBlockHtml = '<p>This</p><p>is</p><ul><li>five</li><li>block</li></ul><p>test</p>',
-				sixBlockHtml = '<p>This</p><p>is</p><p>a</p><ul><li>six</li><li>block</li></ul><p>test</p>';
+				sixBlockHtml = '<p>This</p><p>is</p><p>a</p><ul><li>six</li><li>block</li></ul><p>one</p>';
 
 				// this test assumes that the BLOCK_REQUEST_LIMIT is set to the default
 				// of 5 blocks per AJAX request
