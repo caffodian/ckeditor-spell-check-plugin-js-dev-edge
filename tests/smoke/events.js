@@ -175,6 +175,8 @@
 						// stop the plugin
 						editor.execCommand('nanospell');
 
+						// reset data with six-block html. Confirms that an additional AJAX
+						// call occurs when the number of blocks is increased over the limit
 						bot.setData(sixBlockHtml, function () {
 							resumeAfter(editor, 'spellCheckComplete', function () {
 								observer.assertAjaxCalls(2);
