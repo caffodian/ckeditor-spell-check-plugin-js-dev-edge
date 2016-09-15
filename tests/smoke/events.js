@@ -70,8 +70,8 @@
 			function triggerSecondParagraphSpellcheck() {
 				// first run checks the whole document.  Since the spellcheck first
 				// splits the document into blocks, all events other than
-				// "startScanWords" will be fired twice.
-				observer.assert(["spellCheckComplete", "startRender", "startCheckWordsAjax", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
+				// "startScanWords" and "startCheckWordsAjax" will be fired twice.
+				observer.assert(["spellCheckComplete", "startRender", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
 
 				// make a new observer to clear the events
 
@@ -130,7 +130,7 @@
 
 				function completeFirstSpellcheck() {
 
-					observer.assert(["spellCheckComplete", "startRender", "startCheckWordsAjax", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
+					observer.assert(["spellCheckComplete", "startRender", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
 
 					// set outer li to show that a spellcheck is in progress
 					outer.setCustomData('spellCheckInProgress', true);
