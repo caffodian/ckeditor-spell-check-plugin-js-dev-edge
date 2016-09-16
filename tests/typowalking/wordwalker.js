@@ -181,6 +181,21 @@ bender.test( {
 		outerUnorderedList = this.editor.editable().getFirst();
 
 		arrayAssert.itemsAreEqual(['asdf'], this.getWordsWithWordWalker( outerUnorderedList.getFirst() ));
+	},
+
+	'test it ignores spellcheck spans': function() {
+		var bot = this.editorBot,
+			wordsReturned,
+			paragraphWithSpellCheckSpans;
+
+		bot.setHtmlWithSelection(
+			'<p>This paragraph has a <span class="nanospell-typo">missspelling</span> in it</p>'
+		);
+
+		paragraphWithSpellCheckSpans = this.editor.editable().getFirst();
+
+		wordsReturned = this.getWordsWithWordWalker(paragraphWithSpellCheckSpans);
+
+		arrayAssert.itemsAreEqual(['This', 'paragraph', 'has', 'a', 'in', 'it'], wordsReturned);
 	}
 } );
-
