@@ -538,11 +538,9 @@
 
 			function render(event) {
 				var bookmarks = editor.getSelection().createBookmarks(true),
-					rootElement = event.data,
-					range = editor.createRange();
+					rootElement = event.data;
 
-				range.selectNodeContents(rootElement);
-				self.markTyposInRange(editor, range);
+				self.markTypos(editor, rootElement);
 
 				editor.getSelection().selectBookmarks(bookmarks);
 
