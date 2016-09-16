@@ -63,7 +63,7 @@
 		var startNode = range.startContainer;
 		var ww = this;
 
-		ww.hitNestedBlock = false;
+		ww.hitWordBreak = false;
 
 		function isRootBlockTextNode(node) {
 			// this function is an evaluator used to return only
@@ -96,12 +96,16 @@
 				(block ? blockIsStartNode : true); // check we don't enter nested blocks (special list case since it's not considered a limit)
 
 			// If it's not a rootBlock text node, check to see if we hit a nested block element
-			if (!condition) {
-				if (isNotBookmark(node) &&
-				 	((blockLimit && !blockLimitIsStartNode) ||
-					(block && !blockIsStartNode))) {
+			// or another element that logically should cause a word break
 
-					ww.hitNestedBlock = true;
+			if (!condition) {
+				if (node.type == CKEDITOR.NODE_ELEMENT &&
+					isNotBookmark(node) &&
+				 	((blockLimit && !blockLimitIsStartNode) ||
+					(block && !blockIsStartNode) ||
+					node.is('br') || node.is('sup') || node.is('sub'))) {
+
+					ww.hitWordBreak = true;
 				}
 			}
 
@@ -161,10 +165,9 @@
 
 			while (currentTextNode !== null) {
 				// this if block returns the word and range if we still have valid
-				// text nodes but there was a nested block element between text nodes.
-				// this can occur in nested lists.
-				if (text && i === text.length && ww.hitNestedBlock) {
-					ww.hitNestedBlock = false;
+				// text nodes but we traversed an element that should cause a word break
+				if (text && i === text.length && ww.hitWordBreak) {
+					ww.hitWordBreak = false;
 					if (word) return { word: word, range: wordRange };
 				}
 				text = currentTextNode.getText();
