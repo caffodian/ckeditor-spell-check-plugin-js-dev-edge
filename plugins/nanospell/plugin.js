@@ -653,15 +653,11 @@
 			}
 
 			function spellCheckInProgress(element) {
-				var elementPath = new CKEDITOR.dom.elementPath(element),
-					elements = elementPath.elements;
+				var elementPath = new CKEDITOR.dom.elementPath(element);
 
-				for (var i = 0; i < elements.length; i++) {
-					if (elements[i].getCustomData('spellCheckInProgress') === true) {
-						return true;
-					}
-				}
-				return false;
+				return elementPath.contains(function(el) {
+					return (el.getCustomData('spellCheckInProgress') === true)
+				})
 			}
 
 			function addPersonal(word) {
