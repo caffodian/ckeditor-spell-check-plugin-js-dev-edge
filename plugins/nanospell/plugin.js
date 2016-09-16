@@ -541,8 +541,6 @@
 					rootElement = event.data,
 					range = editor.createRange();
 
-				clearAllSpellCheckingSpans(rootElement);
-
 				range.selectNodeContents(rootElement);
 				self.markTyposInRange(editor, range);
 
