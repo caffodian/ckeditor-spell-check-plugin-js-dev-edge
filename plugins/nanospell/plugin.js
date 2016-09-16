@@ -886,12 +886,6 @@
 			range.extractContents().appendTo(span);
 			range.insertNode(span);
 		},
-		markTypos: function (editor, node) {
-			var range = editor.createRange();
-			range.selectNodeContents(node);
-
-			this.markTyposInRange(editor, range);
-		},
 		markTyposInRange: function (editor, range) {
 			var match;
 			var wordwalker = new this.WordWalker(range);
@@ -916,17 +910,6 @@
 
 			while (currRange = rangeListIterator.getNextRange()) {
 				this.wrapWithTypoSpan(editor, currRange);
-			}
-		},
-		markAllTypos: function (editor) {
-			var range = editor.createRange(),
-				block;
-
-			range.selectNodeContents(editor.editable());
-
-			var iterator = range.createIterator();
-			while (( block = iterator.getNextParagraph() )) {
-				this.markTypos(editor, block);
 			}
 		},
 		WordWalker: WordWalker
