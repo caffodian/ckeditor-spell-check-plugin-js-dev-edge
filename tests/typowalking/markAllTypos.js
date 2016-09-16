@@ -10,6 +10,17 @@ bender.editor = {
 };
 
 bender.test( {
+	// ignoring these tests for now since 'markAllTypos' function has been removed
+	// will test elsewhere
+	_should: {
+ 		ignore: {
+ 			'test marking a simple paragraph': true,
+			'test marking a simple list': true,
+			'test marking a nested list': true,
+			'test marking a nested multi item list': true,
+			'test marking a complex nested list': true,
+ 		}
+ 	},
 	assertHtml: function( expected, actual, msg ) {
 		assert.areEqual( bender.tools.fixHtml( expected ), bender.tools.fixHtml( actual ), msg );
 	},
@@ -169,4 +180,3 @@ bender.test( {
 	}
 
 } );
-
