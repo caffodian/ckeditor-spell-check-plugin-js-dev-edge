@@ -403,8 +403,7 @@
 			}
 
 			function scanWords(event) {
-				var words,
-					rootElement = event.data,
+				var rootElement = event.data,
 					range = editor.createRange();
 
 				range.selectNodeContents(rootElement);
