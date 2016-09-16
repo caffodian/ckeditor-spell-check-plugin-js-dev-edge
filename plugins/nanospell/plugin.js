@@ -267,6 +267,9 @@
 				}
 				return true;
 			});
+			editor.on(EVENT_NAMES.START_RENDER, render, self);
+			editor.on(EVENT_NAMES.START_SCAN_WORDS, scanWords, self);
+			editor.on(EVENT_NAMES.START_CHECK_WORDS, checkWords, self);
 
 			setUpContextMenu(editor, this.path);
 
@@ -411,8 +414,6 @@
 				scanWordsInRange(range);
 			}
 
-			editor.on(EVENT_NAMES.START_SCAN_WORDS, scanWords, self);
-
 			function elementAtCursor() {
 				if (!editor.getSelection()) {
 					return null;
@@ -481,8 +482,6 @@
 				rpc(url, data, callback);
 			}
 
-			editor.on(EVENT_NAMES.START_CHECK_WORDS, checkWords, self);
-
 			function wordsToRPC(words, lang) {
 				return '{"id":"c0","method":"spellcheck","params":{"lang":"' + lang + '","words":["' + words.join('","') + '"]}}'
 			}
@@ -548,8 +547,6 @@
 				self._timer = null;
 				editor.fire(EVENT_NAMES.SPELLCHECK_COMPLETE);
 			}
-
-			editor.on(EVENT_NAMES.START_RENDER, render, self);
 
 			function clearAllSpellCheckingSpans(element) {
 				var spans = element.find('span.nanospell-typo');
