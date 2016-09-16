@@ -885,6 +885,12 @@
 			range.extractContents().appendTo(span);
 			range.insertNode(span);
 		},
+		markTypos: function (editor, node) {
+			var range = editor.createRange();
+			range.selectNodeContents(node);
+
+			this.markTyposInRange(editor, range);
+		},
 		markTyposInRange: function (editor, range) {
 			var match;
 			var wordwalker = new this.WordWalker(range);
