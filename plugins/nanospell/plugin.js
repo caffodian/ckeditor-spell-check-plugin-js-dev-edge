@@ -165,10 +165,7 @@
 				// this can occur in nested lists.
 				if (text && i === text.length && ww.hitNestedBlock) {
 					ww.hitNestedBlock = false;
-					return {
-						word: word,
-						range: wordRange
-					}
+					if (word) return { word: word, range: wordRange };
 				}
 				text = currentTextNode.getText();
 				for (i = ww.offset; i < text.length; i++) {
@@ -177,11 +174,7 @@
 						wordRange.setEnd(currentTextNode, i);
 
 						ww.offset = ww.getOffsetToNextNonSeparator(text, i);
-
-						return {
-							word: word,
-							range: wordRange
-						}
+						if (word) return { word: word, range: wordRange };
 					}
 				}
 				word += text.substr(ww.offset);
@@ -190,17 +183,11 @@
 				currentTextNode = ww.rootBlockTextNodeWalker.next();
 
 				ww.textNode = currentTextNode;
-
 			}
 			// reached the end of block,
 			// so just return what we've walked
 			// of the current word.
-
-			return {
-				word: word,
-				range: wordRange
-			};
-
+			if (word) return { word: word, range: wordRange };
 		}
 	};
 
