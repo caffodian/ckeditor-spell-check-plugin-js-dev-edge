@@ -60,12 +60,9 @@
 		// and provides a mechanism for iterating over each word within,
 		// ignoring non-block elements.  (for example, span)
 		var isNotBookmark = CKEDITOR.dom.walker.bookmark(false, true);
-		var isBlockBoundary = CKEDITOR.dom.walker.blockBoundary();
-
 		var startNode = range.startContainer;
-		var endNode = range.endContainer;
-
 		var ww = this;
+
 		ww.hitNestedBlock = false;
 
 		function isRootBlockTextNode(node) {
