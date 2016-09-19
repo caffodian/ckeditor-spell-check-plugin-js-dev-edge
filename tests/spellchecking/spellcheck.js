@@ -91,8 +91,8 @@
 
         tc.assertHtml(
           '<p><span class="nanospell-typo">appkes</span><br>' +
-            '<span class="nanospell-typo>pearrs</span><br>' +
-            '<span class="nanospell-typo>bannanas</span>' +
+            '<span class="nanospell-typo">pearrs</span><br>' +
+            '<span class="nanospell-typo">bannanas</span>' +
           '</p>',
           paragraph.getOuterHtml()
         );
