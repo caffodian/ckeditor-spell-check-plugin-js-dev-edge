@@ -60,13 +60,10 @@
 		// and provides a mechanism for iterating over each word within,
 		// ignoring non-block elements.  (for example, span)
 		var isNotBookmark = CKEDITOR.dom.walker.bookmark(false, true);
-		var isBlockBoundary = CKEDITOR.dom.walker.blockBoundary();
-
 		var startNode = range.startContainer;
-		var endNode = range.endContainer;
-
 		var ww = this;
-		ww.hitNestedBlock = false;
+
+		ww.hitWordBreak = false;
 
 		function isRootBlockTextNode(node) {
 			// this function is an evaluator used to return only
@@ -80,7 +77,10 @@
 				block = path.block,
 				blockIsStartNode = block && block.equals(startNode),
 				blockLimit = path.blockLimit,
-				blockLimitIsStartNode = blockLimit && blockLimit.equals(startNode);
+				blockLimitIsStartNode = blockLimit && blockLimit.equals(startNode),
+				isInSpellCheckSpan = path.contains(function(el) {
+					return el.getName() === 'span' && el.hasClass('nanospell-typo');
+				})
 
 			// tables and list items can get a bit weird with getNextParagraph()
 			// for example causing list item descendants to be included as part of the original list item
@@ -91,16 +91,21 @@
 				node.getLength() > 0 &&  // and it's not empty
 				( !node.isReadOnly() ) &&   // or read only
 				isNotBookmark(node) && // and isn't a fake bookmarking node
+				!isInSpellCheckSpan && // it isn't in a spellcheck span
 				(blockLimit ? blockLimitIsStartNode : true) && // check we don't enter another block-like element
 				(block ? blockIsStartNode : true); // check we don't enter nested blocks (special list case since it's not considered a limit)
 
 			// If it's not a rootBlock text node, check to see if we hit a nested block element
-			if (!condition) {
-				if (isNotBookmark(node) &&
-				 	((blockLimit && !blockLimitIsStartNode) ||
-					(block && !blockIsStartNode))) {
+			// or another element that logically should cause a word break
 
-					ww.hitNestedBlock = true;
+			if (!condition) {
+				if (node.type == CKEDITOR.NODE_ELEMENT &&
+					isNotBookmark(node) &&
+				 	((blockLimit && !blockLimitIsStartNode) ||
+					(block && !blockIsStartNode) ||
+					node.is('br', 'sup', 'sub'))) {
+
+					ww.hitWordBreak = true;
 				}
 			}
 
@@ -160,14 +165,10 @@
 
 			while (currentTextNode !== null) {
 				// this if block returns the word and range if we still have valid
-				// text nodes but there was a nested block element between text nodes.
-				// this can occur in nested lists.
-				if (text && i === text.length && ww.hitNestedBlock) {
-					ww.hitNestedBlock = false;
-					return {
-						word: word,
-						range: wordRange
-					}
+				// text nodes but we traversed an element that should cause a word break
+				if (text && i === text.length && ww.hitWordBreak) {
+					ww.hitWordBreak = false;
+					if (word) return { word: word, range: wordRange };
 				}
 				text = currentTextNode.getText();
 				for (i = ww.offset; i < text.length; i++) {
@@ -176,11 +177,7 @@
 						wordRange.setEnd(currentTextNode, i);
 
 						ww.offset = ww.getOffsetToNextNonSeparator(text, i);
-
-						return {
-							word: word,
-							range: wordRange
-						}
+						if (word) return { word: word, range: wordRange };
 					}
 				}
 				word += text.substr(ww.offset);
@@ -189,17 +186,11 @@
 				currentTextNode = ww.rootBlockTextNodeWalker.next();
 
 				ww.textNode = currentTextNode;
-
 			}
 			// reached the end of block,
 			// so just return what we've walked
 			// of the current word.
-
-			return {
-				word: word,
-				range: wordRange
-			};
-
+			if (word) return { word: word, range: wordRange };
 		}
 	};
 
@@ -266,6 +257,9 @@
 				}
 				return true;
 			});
+			editor.on(EVENT_NAMES.START_RENDER, render, self);
+			editor.on(EVENT_NAMES.START_SCAN_WORDS, scanWords, self);
+			editor.on(EVENT_NAMES.START_CHECK_WORDS, checkWords, self);
 
 			setUpContextMenu(editor, this.path);
 
@@ -403,15 +397,12 @@
 			}
 
 			function scanWords(event) {
-				var words,
-					rootElement = event.data,
+				var rootElement = event.data,
 					range = editor.createRange();
 
 				range.selectNodeContents(rootElement);
 				scanWordsInRange(range);
 			}
-
-			editor.on(EVENT_NAMES.START_SCAN_WORDS, scanWords, self);
 
 			function elementAtCursor() {
 				if (!editor.getSelection()) {
@@ -481,8 +472,6 @@
 				rpc(url, data, callback);
 			}
 
-			editor.on(EVENT_NAMES.START_CHECK_WORDS, checkWords, self);
-
 			function wordsToRPC(words, lang) {
 				return '{"id":"c0","method":"spellcheck","params":{"lang":"' + lang + '","words":["' + words.join('","') + '"]}}'
 			}
@@ -538,13 +527,9 @@
 
 			function render(event) {
 				var bookmarks = editor.getSelection().createBookmarks(true),
-					rootElement = event.data,
-					range = editor.createRange();
+					rootElement = event.data;
 
-				clearAllSpellCheckingSpans(rootElement);
-
-				range.selectNodeContents(rootElement);
-				self.markTyposInRange(editor, range);
+				self.markTypos(editor, rootElement);
 
 				editor.getSelection().selectBookmarks(bookmarks);
 
@@ -552,8 +537,6 @@
 				self._timer = null;
 				editor.fire(EVENT_NAMES.SPELLCHECK_COMPLETE);
 			}
-
-			editor.on(EVENT_NAMES.START_RENDER, render, self);
 
 			function clearAllSpellCheckingSpans(element) {
 				var spans = element.find('span.nanospell-typo');
@@ -660,15 +643,11 @@
 			}
 
 			function spellCheckInProgress(element) {
-				var elementPath = new CKEDITOR.dom.elementPath(element),
-					elements = elementPath.elements;
+				var elementPath = new CKEDITOR.dom.elementPath(element);
 
-				for (var i = 0; i < elements.length; i++) {
-					if (elements[i].getCustomData('spellCheckInProgress') === true) {
-						return true;
-					}
-				}
-				return false;
+				return elementPath.contains(function(el) {
+					return (el.getCustomData('spellCheckInProgress') === true)
+				})
 			}
 
 			function addPersonal(word) {
@@ -917,17 +896,6 @@
 
 			while (currRange = rangeListIterator.getNextRange()) {
 				this.wrapWithTypoSpan(editor, currRange);
-			}
-		},
-		markAllTypos: function (editor) {
-			var range = editor.createRange(),
-				block;
-
-			range.selectNodeContents(editor.editable());
-
-			var iterator = range.createIterator();
-			while (( block = iterator.getNextParagraph() )) {
-				this.markTypos(editor, block);
 			}
 		},
 		WordWalker: WordWalker
