@@ -130,7 +130,40 @@
       });
 
       wait();
-    }
+    },
+    'test it can spellcheck a complex nested list': function() {
+      var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+      bot.setHtmlWithSelection(
+  			'<ul>' +
+  				'<li>appkes' +
+  					'<ol>' +
+  						'<li>pearrs</li>' +
+  					'</ol>' +
+  				'bannanas</li>' +
+  			'</ul>'
+      );
+
+      resumeAfter(editor, 'spellCheckComplete', function() {
+        var complexList = editor.editable().findOne('ul');
+
+        tc.assertHtml(
+          '<ul>' +
+    				'<li><span class="nanospell-typo">appkes</span>' +
+    					'<ol>' +
+    						'<li><span class="nanospell-typo">pearrs</span></li>' +
+    					'</ol>' +
+    				'<span class="nanospell-typo">bannanas</span></li>' +
+    			'</ul>',
+          complexList.getOuterHtml()
+        );
+      });
+
+      wait();
+    },
 
   });
 
