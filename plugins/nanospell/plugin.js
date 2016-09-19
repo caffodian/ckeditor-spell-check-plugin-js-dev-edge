@@ -225,6 +225,18 @@
 				},
 				editorFocus: true
 			});
+			editor.addCommand('nanospellReset', {
+				exec: function(editor) {
+					spellcache = [];
+					suggestionscache = [];
+					ignorecache = [];
+					if (commandIsActive) {
+						stop();
+						setTimeout(start, 10);
+					}
+				},
+				editorFocus: true
+			});
 			editor.ui.addButton('nanospell', {
 				label: 'Spell Checking by Nanospell',
 				command: 'nanospell',
