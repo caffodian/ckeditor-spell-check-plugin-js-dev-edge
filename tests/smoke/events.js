@@ -14,9 +14,6 @@
 	};
 
 	bender.test({
-		assertHtml: function( expected, actual, msg ) {
-			assert.areEqual( bender.tools.fixHtml( expected ), bender.tools.fixHtml( actual ), msg );
-		},
 		setUp: function () {
 			this.server = sinon.fakeServer.create();
 			this.server.respondImmediately = true;
