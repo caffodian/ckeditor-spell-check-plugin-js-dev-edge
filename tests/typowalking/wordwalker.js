@@ -197,5 +197,21 @@ bender.test( {
 		wordsReturned = this.getWordsWithWordWalker(paragraphWithSpellCheckSpans);
 
 		arrayAssert.itemsAreEqual(['This', 'paragraph', 'has', 'a', 'in', 'it'], wordsReturned);
+	},
+
+	'test walking paragraph with breaks and subscripts and superscripts': function() {
+		var bot = this.editorBot,
+			paragraphWithTags,
+			wordsReturned;
+
+		bot.setHtmlWithSelection(
+			'<p>paragraph<br/>break<sup>superscript</sup> paragraph<sub>subscript</sub>'
+		);
+
+		paragraphWithTags = this.editor.editable().getFirst();
+
+		wordsReturned = this.getWordsWithWordWalker(paragraphWithTags);
+
+		arrayAssert.itemsAreEqual(['paragraph', 'break', 'superscript', 'paragraph', 'subscript'], wordsReturned);
 	}
 } );
