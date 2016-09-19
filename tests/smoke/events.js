@@ -8,7 +8,6 @@
 		config: {
 			enterMode: CKEDITOR.ENTER_P,
 			nanospell: {
-				// autostart: false,
 				blockRequestLimit: 5
 			}
 		}
@@ -40,8 +39,7 @@
 		},
 		tearDown: function () {
 			this.server.restore();
-			// toggle spellcheck off.  (we probably should have a separate command for starting and stopping)
-			// instead of just toggling.
+			// reset the plugin and clear all spellcaches
 			this.editorBot.editor.execCommand('nanospellReset');
 		},
 		'test it emits events when going through the spellcheck cycle': function () {
@@ -51,25 +49,19 @@
 				observer = observeSpellCheckEvents(editor),
 				starterHtml = '<p>asdf jkl dzxda</p>';
 
-			bot.setData(starterHtml, function () {
-				resumeAfter(editor, 'spellCheckComplete', function () {
-					observer.assert(["spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"])
-				});
+			bot.setHtmlWithSelection(starterHtml);
 
-				// start spellcheck
-				// editor.execCommand('nanospell');
-
-				wait();
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				observer.assert(["spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"])
 			});
+
+			wait();
 		},
 		'test future spellchecks only check the current element': function() {
 			var bot = this.editorBot,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
 				observer = observeSpellCheckEvents(editor),
-				// TODO - add a helper API to clear cached suggestions
-				// this requires one unique word over the previous test
-				// if the entire suite is run
 				starterHtml = '<p>asdf jkl dzxda psd</p><p>asdf ndskn jkl^</p>';
 
 			function triggerSecondParagraphSpellcheck() {
@@ -108,8 +100,6 @@
 
 			bot.setHtmlWithSelection(starterHtml);
 
-			// start spellcheck after the html has been set
-			// editor.execCommand('nanospell');
 			// wait for the first spellcheck
 			wait();
 		},
@@ -127,8 +117,6 @@
 				inner = doc.getById('b');
 
 				resumeAfter(editor, 'spellCheckComplete', completeFirstSpellcheck);
-
-				// editor.execCommand('nanospell');
 
 				// wait for initial spellcheck to complete
 				wait();
@@ -169,35 +157,30 @@
 				fiveBlockHtml = '<p>This</p><p>is</p><ul><li>five</li><li>block</li></ul><p>test</p>',
 				sixBlockHtml = '<p>This</p><p>is</p><p>a</p><ul><li>six</li><li>block</li></ul><p>one</p>';
 
-				bot.setData(fiveBlockHtml, function () {
-					resumeAfter(editor, 'spellCheckComplete', function () {
-						observer.assertAjaxCalls(1);
+				bot.setHtmlWithSelection(fiveBlockHtml);
 
-						// reset observer
-						observer = observeSpellCheckEvents(editor);
+				resumeAfter(editor, 'spellCheckComplete', function() {
+					// spellcheck with 5 blocks should make 1 AJAX call
+					observer.assertAjaxCalls(1);
 
-						// stop the plugin
-						editor.execCommand('nanospellReset');
+					// reset observer
+					observer = observeSpellCheckEvents(editor);
 
-						// reset data with six-block html. Confirms that an additional AJAX
-						// call occurs when the number of blocks is increased over the limit
-						bot.setData(sixBlockHtml, function () {
-							resumeAfter(editor, 'spellCheckComplete', function () {
-								observer.assertAjaxCalls(2);
-							});
+					// reset plugin
+					editor.execCommand('nanospellReset');
 
-							// restart spellcheck
-							// editor.execCommand('nanospell');
+					bot.setHtmlWithSelection(sixBlockHtml);
 
-							wait();
-						});
+					resumeAfter(editor, 'spellCheckComplete', function() {
+						// spellcheck with 6 blocks should make 2 AJAX calls
+						observer.assertAjaxCalls(2);
 					});
-
-					// start spellcheck
-					// editor.execCommand('nanospell');
 
 					wait();
 				});
+
+				wait();
+
 		},
 		'test it has spellcheck spans inserted after spellcheck': function() {
 			var bot = this.editorBot,
@@ -207,17 +190,15 @@
 				observer = observeSpellCheckEvents(editor),
 				starterHtml = '<p>Paragraph with missssspelling</p>';
 
-			bot.setData(starterHtml, function() {
-				resumeAfter(editor, 'spellCheckComplete', function() {
-					var spellCheckSpan = editor.editable().findOne('span');
+			bot.setHtmlWithSelection(starterHtml);
 
-					tc.assertHtml('<span class="nanospell-typo">missssspelling</span>', spellCheckSpan.getOuterHtml());
-				});
+			resumeAfter(editor, 'spellCheckComplete', function() {
+				var spellCheckSpan = editor.editable().findOne('span');
 
-				// editor.execCommand('nanospell');
+				tc.assertHtml('<span class="nanospell-typo">missssspelling</span>', spellCheckSpan.getOuterHtml());
+			});
 
-				wait();
-			})
+			wait();
 		}
 	});
 
