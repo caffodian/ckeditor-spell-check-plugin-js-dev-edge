@@ -232,7 +232,7 @@
 					ignorecache = [];
 					if (commandIsActive) {
 						stop();
-						setTimeout(start, 10);
+						start();
 					}
 				},
 				editorFocus: true
