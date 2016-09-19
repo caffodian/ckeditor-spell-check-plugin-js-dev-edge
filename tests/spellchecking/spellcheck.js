@@ -56,6 +56,23 @@
 
 			wait();
 		},
+    'test it can span across inline style elements': function() {
+      var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter,
+				starterHtml = '<p>Paragraph with mis<b>s</b>s<i>pe</i>lling</p>';
+
+      bot.setHtmlWithSelection(starterHtml);
+
+			resumeAfter(editor, 'spellCheckComplete', function() {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml('<p>Paragraph with <span class="nanospell-typo">mis<b>s</b>s<i>pe</i>lling</span></p>', paragraph.getOuterHtml());
+			});
+
+			wait();
+    },
     'test it can insert spellcheck spans correctly in a list': function() {
       var bot = this.editorBot,
 				tc = this,
