@@ -164,6 +164,45 @@
 
       wait();
     },
+    'test it can spellcheck a simple table': function() {
+      var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+      bot.setHtmlWithSelection(
+  			'<table>' +
+  				'<tbody>' +
+  					'<tr>' +
+  						'<td>appkes</td>' +
+  					'</tr>' +
+  					'<tr>' +
+  						'<td>pearrs</td>' +
+  					'</tr>' +
+  				'</tbody>' +
+  			'</table>'
+  		);
+
+      resumeAfter(editor, 'spellCheckComplete', function() {
+        var table = editor.editable().findOne('table');
+
+        tc.assertHtml(
+          '<table>' +
+    				'<tbody>' +
+    					'<tr>' +
+    						'<td><span class="nanospell-typo">appkes</span></td>' +
+    					'</tr>' +
+    					'<tr>' +
+    						'<td><span class="nanospell-typo">pearrs</span></td>' +
+    					'</tr>' +
+    				'</tbody>' +
+    			'</table>',
+          table.getOuterHtml()
+        );
+      });
+
+      wait();
+    },
 
   });
 
