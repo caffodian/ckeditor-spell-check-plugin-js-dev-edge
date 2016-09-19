@@ -225,6 +225,18 @@
 				},
 				editorFocus: true
 			});
+			editor.addCommand('nanospellReset', {
+				exec: function(editor) {
+					spellcache = [];
+					suggestionscache = [];
+					ignorecache = [];
+					if (commandIsActive) {
+						stop();
+						start();
+					}
+				},
+				editorFocus: true
+			});
 			editor.ui.addButton('nanospell', {
 				label: 'Spell Checking by Nanospell',
 				command: 'nanospell',
@@ -614,7 +626,7 @@
 					iterator = range.createIterator();
 				while (( block = iterator.getNextParagraph() )) {
 					block.setCustomData('spellCheckInProgress', true);
-					combinedText += block.getText() + ' ';
+					combinedText += getWords(block) + ' ';
 					blockList.push(block);
 					if (blockList.length === BLOCK_REQUEST_LIMIT) {
 						startCheckOrMarkWords(getUnknownWords(combinedText), blockList);
@@ -625,6 +637,20 @@
 				if (blockList.length > 0) {
 					startCheckOrMarkWords(getUnknownWords(combinedText), blockList);
 				}
+			}
+
+			function getWords(block) {
+				var range = editor.createRange(),
+					words = [],
+					word;
+
+				range.selectNodeContents(block);
+				var wordwalker = new self.WordWalker(range);
+
+				while(word = wordwalker.getNextWord()) {
+					words.push(word.word);
+				}
+				return words.join(" ");
 			}
 
 			function startCheckOrMarkWords(words, blockList) {
