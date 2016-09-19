@@ -15,6 +15,9 @@
 	};
 
 	bender.test({
+		assertHtml: function( expected, actual, msg ) {
+			assert.areEqual( bender.tools.fixHtml( expected ), bender.tools.fixHtml( actual ), msg );
+		},
 		setUp: function () {
 			this.server = sinon.fakeServer.create();
 			this.server.respondImmediately = true;
@@ -25,7 +28,8 @@
 				"result": {
 					"asdf": ["abba"],
 					"jkl": ["joke"],
-					"dzxda": ["dandy", "doody"]
+					"dzxda": ["dandy", "doody"],
+					"missssspelling": ["misspelling"]
 				}
 			};
 
@@ -194,8 +198,26 @@
 
 					wait();
 				});
+		},
+		'test it has spellcheck spans inserted after spellcheck': function() {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter,
+				observer = observeSpellCheckEvents(editor),
+				starterHtml = '<p>Paragraph with missssspelling</p>';
 
+			bot.setData(starterHtml, function() {
+				resumeAfter(editor, 'spellCheckComplete', function() {					
+					var spellCheckSpan = editor.editable().findOne('span');
 
+					tc.assertHtml('<span class="nanospell-typo">missssspelling</span>', spellCheckSpan.getOuterHtml());
+				});
+
+				editor.execCommand('nanospell');
+
+				wait();
+			})
 		}
 	});
 

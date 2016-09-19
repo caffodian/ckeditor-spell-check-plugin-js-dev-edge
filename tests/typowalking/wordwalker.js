@@ -149,10 +149,6 @@ bender.test( {
 
 		innerOrderedList = outerUnorderedList.getFirst().getChild(1);
 
-		// this is a bug!  but pinning it for later.
-		// although we have solved the problem of inner list being walked twice,
-		// it's not smart enough yet to realize we need to add a whitespace when skipping over.
-		// we need to detect this special case and add a whitespace (harder than it sounds)
 		arrayAssert.itemsAreEqual(['foo', 'baz'], this.getWordsWithWordWalker( outerUnorderedList.getFirst() ));
 		arrayAssert.itemsAreEqual(['bar'], this.getWordsWithWordWalker( innerOrderedList.getFirst() ));
 	},
@@ -185,6 +181,37 @@ bender.test( {
 		outerUnorderedList = this.editor.editable().getFirst();
 
 		arrayAssert.itemsAreEqual(['asdf'], this.getWordsWithWordWalker( outerUnorderedList.getFirst() ));
+	},
+
+	'test it ignores spellcheck spans': function() {
+		var bot = this.editorBot,
+			wordsReturned,
+			paragraphWithSpellCheckSpans;
+
+		bot.setHtmlWithSelection(
+			'<p>This paragraph has a <span class="nanospell-typo">missspelling</span> in it</p>'
+		);
+
+		paragraphWithSpellCheckSpans = this.editor.editable().getFirst();
+
+		wordsReturned = this.getWordsWithWordWalker(paragraphWithSpellCheckSpans);
+
+		arrayAssert.itemsAreEqual(['This', 'paragraph', 'has', 'a', 'in', 'it'], wordsReturned);
+	},
+
+	'test walking paragraph with breaks and subscripts and superscripts': function() {
+		var bot = this.editorBot,
+			paragraphWithTags,
+			wordsReturned;
+
+		bot.setHtmlWithSelection(
+			'<p>paragraph<br/>break<sup>superscript</sup> paragraph<sub>subscript</sub>'
+		);
+
+		paragraphWithTags = this.editor.editable().getFirst();
+
+		wordsReturned = this.getWordsWithWordWalker(paragraphWithTags);
+
+		arrayAssert.itemsAreEqual(['paragraph', 'break', 'superscript', 'paragraph', 'subscript'], wordsReturned);
 	}
 } );
-
