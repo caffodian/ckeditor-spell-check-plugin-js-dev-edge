@@ -81,6 +81,39 @@
 
       wait();
     },
+    'test it can insert spellcheck spans in a nested list': function() {
+      var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+      bot.setHtmlWithSelection(
+  			'<ul>' +
+  				'<li>' +
+  					'<ol>' +
+  						'<li>pearrs</li>' +
+  					'</ol>' +
+  				'</li>' +
+  			'</ul>'
+  		);
+
+      resumeAfter(editor, 'spellCheckComplete', function() {
+        var nestedList = editor.editable().findOne('ul');
+
+        tc.assertHtml(
+          '<ul>' +
+            '<li>' +
+              '<ol>' +
+                '<li><span class="nanospell-typo">pearrs</span></li>' +
+              '</ol>' +
+            '</li>' +
+          '</ul>',
+          nestedList.getOuterHtml()
+        );
+      });
+
+      wait();
+    }
 
   });
 
