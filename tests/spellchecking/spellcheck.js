@@ -203,6 +203,45 @@
 
       wait();
     },
+    'test it can spellcheck a table after p conversion': function() {
+      var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+      bot.setHtmlWithSelection(
+  			'<table>' +
+  				'<tbody>' +
+  					'<tr>' +
+  						'<td><p>appkes</p></td>' +
+  					'</tr>' +
+            '<tr>' +
+  						'<td><p>pearrs</p></td>' +
+  					'</tr>' +
+  				'</tbody>' +
+  			'</table>'
+  		);
+
+      resumeAfter(editor, 'spellCheckComplete', function() {
+        var convertedTable = editor.editable().findOne('table');
+
+        tc.assertHtml(
+          '<table>' +
+    				'<tbody>' +
+    					'<tr>' +
+    						'<td><p><span class="nanospell-typo">appkes</span></p></td>' +
+    					'</tr>' +
+    					'<tr>' +
+    						'<td><p><span class="nanospell-typo">pearrs</span></p></td>' +
+    					'</tr>' +
+    				'</tbody>' +
+    			'</table>',
+          convertedTable.getOuterHtml()
+        );
+      });
+
+      wait();
+    }
 
   });
 
