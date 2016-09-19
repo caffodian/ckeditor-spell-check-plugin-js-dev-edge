@@ -22,9 +22,10 @@
 			// mock data, just that it returns something vaguely resembling the server call
 			var suggestions = {
 				"result": {
-					"word1": ["word"],
-					"word2": ["word"],
-					"word3": ["word"]
+					"appkes": ["apples"],
+					"pearrs": ["pears"],
+					"bannanas": ["bananas"],
+          "missspelling": ["misspelling"]
 				}
 			};
 
@@ -38,6 +39,23 @@
 			// reset the plugin and clear all spellcaches
 			this.editorBot.editor.execCommand('nanospellReset');
 		},
+    'test it has spellcheck spans inserted after spellcheck': function() {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter,
+				starterHtml = '<p>Paragraph with missspelling</p>';
+
+			bot.setHtmlWithSelection(starterHtml);
+
+			resumeAfter(editor, 'spellCheckComplete', function() {
+				var spellCheckSpan = editor.editable().findOne('span');
+
+				tc.assertHtml('<span class="nanospell-typo">missspelling</span>', spellCheckSpan.getOuterHtml());
+			});
+
+			wait();
+		}
 
   });
 

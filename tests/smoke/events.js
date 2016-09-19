@@ -181,24 +181,6 @@
 
 				wait();
 
-		},
-		'test it has spellcheck spans inserted after spellcheck': function() {
-			var bot = this.editorBot,
-				tc = this,
-				editor = bot.editor,
-				resumeAfter = bender.tools.resumeAfter,
-				observer = observeSpellCheckEvents(editor),
-				starterHtml = '<p>Paragraph with missssspelling</p>';
-
-			bot.setHtmlWithSelection(starterHtml);
-
-			resumeAfter(editor, 'spellCheckComplete', function() {
-				var spellCheckSpan = editor.editable().findOne('span');
-
-				tc.assertHtml('<span class="nanospell-typo">missssspelling</span>', spellCheckSpan.getOuterHtml());
-			});
-
-			wait();
 		}
 	});
 
