@@ -55,7 +55,32 @@
 			});
 
 			wait();
-		}
+		},
+    'test it can insert spellcheck spans correctly in a list': function() {
+      var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+      bot.setHtmlWithSelection(
+  			'<ol>' +
+  				'<li>appkes</li>' +
+  			'</ol>'
+  		);
+
+      resumeAfter(editor, 'spellCheckComplete', function() {
+        var orderedList = editor.editable().findOne('ol');
+
+        tc.assertHtml(
+          '<ol>' +
+            '<li><span class="nanospell-typo">appkes</span></li>' +
+          '</ol>',
+          orderedList.getOuterHtml()
+        );
+      });
+
+      wait();
+    },
 
   });
 
