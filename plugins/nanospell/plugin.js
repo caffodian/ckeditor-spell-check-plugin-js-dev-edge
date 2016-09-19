@@ -103,7 +103,7 @@
 					isNotBookmark(node) &&
 				 	((blockLimit && !blockLimitIsStartNode) ||
 					(block && !blockIsStartNode) ||
-					node.is('br') || node.is('sup') || node.is('sub'))) {
+					node.is('br', 'sup', 'sub'))) {
 
 					ww.hitWordBreak = true;
 				}
