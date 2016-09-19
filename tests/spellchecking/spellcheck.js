@@ -73,6 +73,33 @@
 
 			wait();
     },
+    'test it can spellcheck across line breaks': function() {
+      var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+      bot.setHtmlWithSelection(
+        '<p>appkes<br>' +
+          'pearrs<br>' +
+          'bannanas' +
+        '</p>'
+      );
+
+      resumeAfter(editor, 'spellCheckComplete', function() {
+        var paragraph = editor.editable().findOne('p');
+
+        tc.assertHtml(
+          '<p><span class="nanospell-typo">appkes</span><br>' +
+            '<span class="nanospell-typo>pearrs</span><br>' +
+            '<span class="nanospell-typo>bannanas</span>' +
+          '</p>',
+          paragraph.getOuterHtml()
+        );
+      });
+
+      wait();
+    },
     'test it can spellcheck a simple list': function() {
       var bot = this.editorBot,
 				tc = this,
