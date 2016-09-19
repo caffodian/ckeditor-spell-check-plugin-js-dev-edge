@@ -49,9 +49,9 @@
 			bot.setHtmlWithSelection(starterHtml);
 
 			resumeAfter(editor, 'spellCheckComplete', function() {
-				var spellCheckSpan = editor.editable().findOne('span');
+				var paragraph = editor.editable().findOne('p');
 
-				tc.assertHtml('<span class="nanospell-typo">missspelling</span>', spellCheckSpan.getOuterHtml());
+				tc.assertHtml('<p>Paragraph with <span class="nanospell-typo">missspelling</span></p>', paragraph.getOuterHtml());
 			});
 
 			wait();
