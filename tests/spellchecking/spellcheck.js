@@ -39,7 +39,7 @@
 			// reset the plugin and clear all spellcaches
 			this.editorBot.editor.execCommand('nanospellReset');
 		},
-    'test it has spellcheck spans inserted after spellcheck': function() {
+    'test it can insert spellcheck spans in paragraphs': function() {
 			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
