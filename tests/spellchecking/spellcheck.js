@@ -39,7 +39,7 @@
 			// reset the plugin and clear all spellcaches
 			this.editorBot.editor.execCommand('nanospellReset');
 		},
-    'test it can insert spellcheck spans in paragraphs': function() {
+    'test it can spellcheck a simple paragraph': function() {
 			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
@@ -56,7 +56,7 @@
 
 			wait();
 		},
-    'test it can span across inline style elements': function() {
+    'test it can spellcheck across inline style elements': function() {
       var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
@@ -73,7 +73,7 @@
 
 			wait();
     },
-    'test it can insert spellcheck spans correctly in a list': function() {
+    'test it can spellcheck a simple list': function() {
       var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
@@ -98,7 +98,7 @@
 
       wait();
     },
-    'test it can insert spellcheck spans in a nested list': function() {
+    'test it can spellcheck a nested list': function() {
       var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
