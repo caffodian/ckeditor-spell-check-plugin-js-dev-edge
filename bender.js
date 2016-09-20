@@ -48,7 +48,8 @@ var config = {
             basePath: 'tests/',
             paths: [
                 'smoke/**',
-				'typowalking/**',
+				        'typowalking/**',
+                'spellchecking/**',
                 '!**/_*/**'
             ],
             // Latest of the old API (1.8.3)
