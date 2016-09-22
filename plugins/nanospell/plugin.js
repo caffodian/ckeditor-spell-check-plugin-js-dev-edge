@@ -203,7 +203,7 @@
 			this.hasPersonal = this.hasPersonalStoreJs;
 		} else {
 			try {
-				localStorage.getItem;
+				localStorage.getItem('test');
 				this.enabled = true;
 				this.addPersonal = this.addPersonalLocalStorage;
 				this.hasPersonal = this.hasPersonalLocalStorage;
