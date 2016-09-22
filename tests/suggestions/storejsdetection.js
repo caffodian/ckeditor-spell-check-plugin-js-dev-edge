@@ -16,9 +16,7 @@
 		},
 		'test it uses storejs when enabled': function() {
 			var editor = this.editorBot.editor;
-			var storeStub = sinon.stub();
-			window.store = storeStub;
-			storeStub.enabled = true;
+			window.store.enabled = true;
 
 			var suggestions = new editor.plugins.nanospell.SuggestionsStorage();
 
