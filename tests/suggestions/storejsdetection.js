@@ -12,7 +12,9 @@
 
 	bender.test({
 		setUp: function() {
-//			this.suggestions = new editor.plugins.nanospell.SuggestionsStorage();
+			window.store = {
+				enabled: false
+			}
 		},
 		'test it uses storejs when enabled': function() {
 			var editor = this.editorBot.editor;
@@ -23,10 +25,7 @@
 			assert.isTrue(suggestions.enabled);
 			assert.areEqual(suggestions.addPersonalStoreJs, suggestions.addPersonal);
 			assert.areEqual(suggestions.hasPersonalStoreJs, suggestions.hasPersonal);
-
-
-			// this cleanup is required only for this test, since we filled in window.store earlier
-			delete window.store;
+			
 		},
 		'test it falls back on localStorage': function() {
 			var editor = this.editorBot.editor;
