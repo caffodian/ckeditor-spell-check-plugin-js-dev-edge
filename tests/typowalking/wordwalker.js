@@ -18,7 +18,8 @@ bender.test( {
 			range,
 			wordwalker,
 			wordsReturned = [],
-			currWordObj;
+			currWordObj,
+			word;
 
 		range = new CKEDITOR.dom.range( editor.document );
 		// assume there is only one block level element.
@@ -27,7 +28,8 @@ bender.test( {
 		wordwalker = new editor.plugins.nanospell.WordWalker(range);
 
 		while (currWordObj = wordwalker.getNextWord()) {
-			wordsReturned.push(currWordObj.word);
+			word = currWordObj.word;
+			if (word) wordsReturned.push(word);
 		}
 
 		return wordsReturned;
