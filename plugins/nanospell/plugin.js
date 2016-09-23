@@ -641,14 +641,16 @@
 
 			function getWords(block) {
 				var range = editor.createRange(),
+					currentWordObj,
 					words = [],
 					word;
 
 				range.selectNodeContents(block);
 				var wordwalker = new self.WordWalker(range);
 
-				while(word = wordwalker.getNextWord()) {
-					words.push(word.word);
+				while(currentWordObj = wordwalker.getNextWord()) {
+					word = currentWordObj.word;
+					if (word) words.push(word);
 				}
 				return words.join(" ");
 			}
