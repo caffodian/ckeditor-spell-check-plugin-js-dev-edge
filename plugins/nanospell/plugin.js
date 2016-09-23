@@ -197,11 +197,18 @@
 	function SuggestionsStorage() {
 		this.enabled = false;
 
-		if (typeof store !== "undefined" && store.enabled) {
-			this.enabled = true;
-			this.addPersonal = this.addPersonalStoreJs;
-			this.hasPersonal = this.hasPersonalStoreJs;
-		} else {
+		//
+		if (typeof store !== "undefined" ) {
+			if (store.enabled) {
+				this.enabled = true;
+				this.addPersonal = this.addPersonalStoreJs;
+				this.hasPersonal = this.hasPersonalStoreJs;
+			}
+			// if store is not undefined, but store is disabled
+			// we don't want to proceed to the localStorage case,
+			// since store will have already done this detection for us
+		} else if (localStorage) { // localStorage can be disabled entirely (localStorage === null)
+			// localStorage can also just throw exceptions due to a security policy
 			try {
 				localStorage.getItem('test');
 				this.enabled = true;
@@ -216,7 +223,7 @@
 		addPersonalLocalStorage: function (word) {
 			// original nanospell code
 			var value = localStorage.getItem('nano_spellchecker_personal');
-			if (value !== null && value !== "") {
+			if (value) {
 				value += String.fromCharCode(127);
 			} else {
 				value = "";

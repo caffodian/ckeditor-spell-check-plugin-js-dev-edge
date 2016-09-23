@@ -25,10 +25,18 @@
 			assert.isTrue(suggestions.enabled);
 			assert.areEqual(suggestions.addPersonalStoreJs, suggestions.addPersonal);
 			assert.areEqual(suggestions.hasPersonalStoreJs, suggestions.hasPersonal);
-			
+
 		},
-		'test it falls back on localStorage': function() {
+		'test it disables if not store.enabled': function() {
 			var editor = this.editorBot.editor;
+
+			var suggestions = new editor.plugins.nanospell.SuggestionsStorage();
+
+			assert.isFalse(suggestions.enabled);
+		},
+		'test it falls back on localStorage if store is undef': function() {
+			var editor = this.editorBot.editor;
+			window.store = undefined;
 
 			var suggestions = new editor.plugins.nanospell.SuggestionsStorage();
 
