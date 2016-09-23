@@ -168,7 +168,7 @@
 				// text nodes but we traversed an element that should cause a word break
 				if (text && i === text.length && ww.hitWordBreak) {
 					ww.hitWordBreak = false;
-					if (word) return { word: word, range: wordRange };
+					return { word: word, range: wordRange };
 				}
 				text = currentTextNode.getText();
 				for (i = ww.offset; i < text.length; i++) {
@@ -177,7 +177,7 @@
 						wordRange.setEnd(currentTextNode, i);
 
 						ww.offset = ww.getOffsetToNextNonSeparator(text, i);
-						if (word) return { word: word, range: wordRange };
+						return { word: word, range: wordRange };
 					}
 				}
 				word += text.substr(ww.offset);
@@ -190,7 +190,7 @@
 			// reached the end of block,
 			// so just return what we've walked
 			// of the current word.
-			if (word) return { word: word, range: wordRange };
+			return { word: word, range: wordRange };
 		}
 	};
 
