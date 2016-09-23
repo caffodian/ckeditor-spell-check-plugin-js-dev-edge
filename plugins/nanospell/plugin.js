@@ -78,7 +78,7 @@
 				blockIsStartNode = block && block.equals(startNode),
 				blockLimit = path.blockLimit,
 				blockLimitIsStartNode = blockLimit && blockLimit.equals(startNode),
-				isInSpellCheckSpan = path.contains(function(el) {
+				isInSpellCheckSpan = path.contains(function (el) {
 					return el.getName() === 'span' && el.hasClass('nanospell-typo');
 				})
 
@@ -101,7 +101,7 @@
 			if (!condition) {
 				if (node.type == CKEDITOR.NODE_ELEMENT &&
 					isNotBookmark(node) &&
-				 	((blockLimit && !blockLimitIsStartNode) ||
+					((blockLimit && !blockLimitIsStartNode) ||
 					(block && !blockIsStartNode) ||
 					node.is('br', 'sup', 'sub'))) {
 
@@ -198,8 +198,74 @@
 			// reached the end of block,
 			// so just return what we've walked
 			// of the current word.
-			if (word) return { word: word, range: wordRange };
+			if (word) return {word: word, range: wordRange};
 		}
+	};
+
+	function SuggestionsStorage() {
+		this.enabled = false;
+
+		//
+		if (typeof store !== "undefined" ) {
+			if (store.enabled) {
+				this.enabled = true;
+				this.addPersonal = this.addPersonalStoreJs;
+				this.hasPersonal = this.hasPersonalStoreJs;
+			}
+			// if store is not undefined, but store is disabled
+			// we don't want to proceed to the localStorage case,
+			// since store will have already done this detection for us
+		} else if (localStorage) { // localStorage can be disabled entirely (localStorage === null)
+			// localStorage can also just throw exceptions due to a security policy
+			try {
+				localStorage.getItem('test');
+				this.enabled = true;
+				this.addPersonal = this.addPersonalLocalStorage;
+				this.hasPersonal = this.hasPersonalLocalStorage;
+			} catch (exception) {
+			}
+		}
+	}
+
+	SuggestionsStorage.prototype = {
+		addPersonalLocalStorage: function (word) {
+			// original nanospell code
+			var value = localStorage.getItem('nano_spellchecker_personal');
+			if (value) {
+				value += String.fromCharCode(127);
+			} else {
+				value = "";
+			}
+			value += word.toLowerCase();
+			localStorage.setItem('nano_spellchecker_personal', value);
+		},
+		addPersonalStoreJs: function (word) {
+			var suggestions = store.get('nanospell_suggestions') || [];
+
+			if (suggestions.indexOf(word) !== -1) return;
+
+			suggestions.push(word);
+			store.set('nanospell_suggestions', suggestions);
+		},
+		hasPersonalLocalStorage: function (word) {
+			var value = localStorage.getItem('nano_spellchecker_personal');
+			if (value === null || value == "") {
+				return false;
+			}
+			var records = value.split(String.fromCharCode(127));
+			word = word.toLowerCase();
+			for (var i = 0; i < records.length; i++) {
+				if (records[i] === word) {
+					return true;
+				}
+			}
+			return false;
+		},
+		hasPersonalStoreJs: function (word) {
+			var suggestions = store.get('nanospell_suggestions') || [];
+			return (suggestions.indexOf(word) !== -1);
+		}
+
 	};
 
 	CKEDITOR.plugins.add('nanospell', {
@@ -221,6 +287,7 @@
 				this.settings = {};
 			}
 			lang = this.settings.dictionary || lang;
+			this.suggestions = new SuggestionsStorage();
 			// set the maximum number of block elements spellchecked per AJAX request
 			BLOCK_REQUEST_LIMIT = this.settings.blockRequestLimit || BLOCK_REQUEST_LIMIT;
 			editor.addCommand('nanospell', {
@@ -234,7 +301,7 @@
 				editorFocus: true
 			});
 			editor.addCommand('nanospellReset', {
-				exec: function(editor) {
+				exec: function (editor) {
 					spellcache = [];
 					suggestionscache = [];
 					ignorecache = [];
@@ -362,12 +429,12 @@
 
 					retobj["nanopell_ignore"] = CKEDITOR.TRISTATE_OFF;
 					//
-					if (localStorage) {
+					if (self.suggestions.enabled) {
 						editor.addMenuItem('nanopell_learn', {
 							label: locale.learn,
 							group: 'nanotools',
 							onClick: function () {
-								addPersonal(typo);
+								self.addPersonal(typo);
 								ignoreWord(element.$, typo, true);
 							}
 						});
@@ -656,9 +723,14 @@
 				range.selectNodeContents(block);
 				var wordwalker = new self.WordWalker(range);
 
+<<<<<<< HEAD
 				while(currentWordObj = wordwalker.getNextWord()) {
 					word = currentWordObj.word;
 					if (word) words.push(word);
+=======
+				while (word = wordwalker.getNextWord()) {
+					words.push(word.word);
+>>>>>>> 9ed9e320c631180994c13a8e55ce1f451d22314f
 				}
 				return words.join(" ");
 			}
@@ -671,7 +743,7 @@
 					});
 				}
 				else {
-					for (var i = 0; i < blockList.length; i++){
+					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
 						editor.fire(EVENT_NAMES.START_RENDER, rootElement);
 					}
@@ -681,20 +753,9 @@
 			function spellCheckInProgress(element) {
 				var elementPath = new CKEDITOR.dom.elementPath(element);
 
-				return elementPath.contains(function(el) {
+				return elementPath.contains(function (el) {
 					return (el.getCustomData('spellCheckInProgress') === true)
 				})
-			}
-
-			function addPersonal(word) {
-				var value = localStorage.getItem('nano_spellchecker_personal');
-				if (value !== null && value !== "") {
-					value += String.fromCharCode(127);
-				} else {
-					value = "";
-				}
-				value += word.toLowerCase();
-				localStorage.setItem('nano_spellchecker_personal', value);
 			}
 
 			function getSuggestions(word) {
@@ -850,19 +911,11 @@
 				removeFormatFilter.call(editor, removeFormatFilterTemplate);
 			}
 		},
+		addPersonal: function (word) {
+			return this.suggestions.addPersonal(word);
+		},
 		hasPersonal: function (word) {
-			var value = localStorage.getItem('nano_spellchecker_personal');
-			if (value === null || value == "") {
-				return false;
-			}
-			var records = value.split(String.fromCharCode(127));
-			word = word.toLowerCase();
-			for (var i = 0; i < records.length; i++) {
-				if (records[i] === word) {
-					return true;
-				}
-			}
-			return false;
+			return this.suggestions.hasPersonal(word);
 		},
 		validWordToken: function (word) {
 			if (!word) {
@@ -934,7 +987,8 @@
 				this.wrapWithTypoSpan(editor, currRange);
 			}
 		},
-		WordWalker: WordWalker
+		WordWalker: WordWalker,
+		SuggestionsStorage: SuggestionsStorage
 	});
 
 })();

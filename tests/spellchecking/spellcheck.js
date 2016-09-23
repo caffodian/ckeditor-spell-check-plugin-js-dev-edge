@@ -10,9 +10,9 @@
 		}
 	};
 
-  bender.test({
-    assertHtml: function( expected, actual, msg ) {
-			assert.areEqual( bender.tools.fixHtml( expected ), bender.tools.fixHtml( actual ), msg );
+	bender.test({
+		assertHtml: function (expected, actual, msg) {
+			assert.areEqual(bender.tools.fixHtml(expected), bender.tools.fixHtml(actual), msg);
 		},
 		setUp: function () {
 			this.server = sinon.fakeServer.create();
@@ -25,7 +25,7 @@
 					"appkes": ["apples"],
 					"pearrs": ["pears"],
 					"bannanas": ["bananas"],
-          "missspelling": ["misspelling"]
+					"missspelling": ["misspelling"]
 				}
 			};
 
@@ -39,7 +39,7 @@
 			// reset the plugin and clear all spellcaches
 			this.editorBot.editor.execCommand('nanospellReset');
 		},
-    'test it can spellcheck a simple paragraph': function() {
+		'test it can spellcheck a simple paragraph': function () {
 			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
@@ -48,7 +48,7 @@
 
 			bot.setHtmlWithSelection(starterHtml);
 
-			resumeAfter(editor, 'spellCheckComplete', function() {
+			resumeAfter(editor, 'spellCheckComplete', function () {
 				var paragraph = editor.editable().findOne('p');
 
 				tc.assertHtml('<p>Paragraph with <span class="nanospell-typo">missspelling</span></p>', paragraph.getOuterHtml());
@@ -56,220 +56,220 @@
 
 			wait();
 		},
-    'test it can spellcheck across inline style elements': function() {
-      var bot = this.editorBot,
+		'test it can spellcheck across inline style elements': function () {
+			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
 				starterHtml = '<p>Paragraph with mis<b>s</b>s<i>pe</i>lling</p>';
 
-      bot.setHtmlWithSelection(starterHtml);
+			bot.setHtmlWithSelection(starterHtml);
 
-			resumeAfter(editor, 'spellCheckComplete', function() {
+			resumeAfter(editor, 'spellCheckComplete', function () {
 				var paragraph = editor.editable().findOne('p');
 
 				tc.assertHtml('<p>Paragraph with <span class="nanospell-typo">mis<b>s</b>s<i>pe</i>lling</span></p>', paragraph.getOuterHtml());
 			});
 
 			wait();
-    },
-    'test it can spellcheck across line breaks': function() {
-      var bot = this.editorBot,
+		},
+		'test it can spellcheck across line breaks': function () {
+			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter;
 
-      bot.setHtmlWithSelection(
-        '<p>appkes<br>' +
-          'pearrs<br>' +
-          'bannanas' +
-        '</p>'
-      );
+			bot.setHtmlWithSelection(
+				'<p>appkes<br>' +
+				'pearrs<br>' +
+				'bannanas' +
+				'</p>'
+			);
 
-      resumeAfter(editor, 'spellCheckComplete', function() {
-        var paragraph = editor.editable().findOne('p');
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
 
-        tc.assertHtml(
-          '<p><span class="nanospell-typo">appkes</span><br>' +
-            '<span class="nanospell-typo">pearrs</span><br>' +
-            '<span class="nanospell-typo">bannanas</span>' +
-          '</p>',
-          paragraph.getOuterHtml()
-        );
-      });
+				tc.assertHtml(
+					'<p><span class="nanospell-typo">appkes</span><br>' +
+					'<span class="nanospell-typo">pearrs</span><br>' +
+					'<span class="nanospell-typo">bannanas</span>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
 
-      wait();
-    },
-    'test it can spellcheck a simple list': function() {
-      var bot = this.editorBot,
+			wait();
+		},
+		'test it can spellcheck a simple list': function () {
+			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter;
 
-      bot.setHtmlWithSelection(
-  			'<ol>' +
-  				'<li>appkes</li>' +
-  			'</ol>'
-  		);
+			bot.setHtmlWithSelection(
+				'<ol>' +
+				'<li>appkes</li>' +
+				'</ol>'
+			);
 
-      resumeAfter(editor, 'spellCheckComplete', function() {
-        var orderedList = editor.editable().findOne('ol');
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var orderedList = editor.editable().findOne('ol');
 
-        tc.assertHtml(
-          '<ol>' +
-            '<li><span class="nanospell-typo">appkes</span></li>' +
-          '</ol>',
-          orderedList.getOuterHtml()
-        );
-      });
+				tc.assertHtml(
+					'<ol>' +
+					'<li><span class="nanospell-typo">appkes</span></li>' +
+					'</ol>',
+					orderedList.getOuterHtml()
+				);
+			});
 
-      wait();
-    },
-    'test it can spellcheck a nested list': function() {
-      var bot = this.editorBot,
+			wait();
+		},
+		'test it can spellcheck a nested list': function () {
+			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter;
 
-      bot.setHtmlWithSelection(
-  			'<ul>' +
-  				'<li>' +
-  					'<ol>' +
-  						'<li>pearrs</li>' +
-  					'</ol>' +
-  				'</li>' +
-  			'</ul>'
-  		);
+			bot.setHtmlWithSelection(
+				'<ul>' +
+				'<li>' +
+				'<ol>' +
+				'<li>pearrs</li>' +
+				'</ol>' +
+				'</li>' +
+				'</ul>'
+			);
 
-      resumeAfter(editor, 'spellCheckComplete', function() {
-        var nestedList = editor.editable().findOne('ul');
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var nestedList = editor.editable().findOne('ul');
 
-        tc.assertHtml(
-          '<ul>' +
-            '<li>' +
-              '<ol>' +
-                '<li><span class="nanospell-typo">pearrs</span></li>' +
-              '</ol>' +
-            '</li>' +
-          '</ul>',
-          nestedList.getOuterHtml()
-        );
-      });
+				tc.assertHtml(
+					'<ul>' +
+					'<li>' +
+					'<ol>' +
+					'<li><span class="nanospell-typo">pearrs</span></li>' +
+					'</ol>' +
+					'</li>' +
+					'</ul>',
+					nestedList.getOuterHtml()
+				);
+			});
 
-      wait();
-    },
-    'test it can spellcheck a complex nested list': function() {
-      var bot = this.editorBot,
+			wait();
+		},
+		'test it can spellcheck a complex nested list': function () {
+			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter;
 
-      bot.setHtmlWithSelection(
-  			'<ul>' +
-  				'<li>appkes' +
-  					'<ol>' +
-  						'<li>pearrs</li>' +
-  					'</ol>' +
-  				'bannanas</li>' +
-  			'</ul>'
-      );
+			bot.setHtmlWithSelection(
+				'<ul>' +
+				'<li>appkes' +
+				'<ol>' +
+				'<li>pearrs</li>' +
+				'</ol>' +
+				'bannanas</li>' +
+				'</ul>'
+			);
 
-      resumeAfter(editor, 'spellCheckComplete', function() {
-        var complexList = editor.editable().findOne('ul');
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var complexList = editor.editable().findOne('ul');
 
-        tc.assertHtml(
-          '<ul>' +
-    				'<li><span class="nanospell-typo">appkes</span>' +
-    					'<ol>' +
-    						'<li><span class="nanospell-typo">pearrs</span></li>' +
-    					'</ol>' +
-    				'<span class="nanospell-typo">bannanas</span></li>' +
-    			'</ul>',
-          complexList.getOuterHtml()
-        );
-      });
+				tc.assertHtml(
+					'<ul>' +
+					'<li><span class="nanospell-typo">appkes</span>' +
+					'<ol>' +
+					'<li><span class="nanospell-typo">pearrs</span></li>' +
+					'</ol>' +
+					'<span class="nanospell-typo">bannanas</span></li>' +
+					'</ul>',
+					complexList.getOuterHtml()
+				);
+			});
 
-      wait();
-    },
-    'test it can spellcheck a simple table': function() {
-      var bot = this.editorBot,
+			wait();
+		},
+		'test it can spellcheck a simple table': function () {
+			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter;
 
-      bot.setHtmlWithSelection(
-  			'<table>' +
-  				'<tbody>' +
-  					'<tr>' +
-  						'<td>appkes</td>' +
-  					'</tr>' +
-  					'<tr>' +
-  						'<td>pearrs</td>' +
-  					'</tr>' +
-  				'</tbody>' +
-  			'</table>'
-  		);
+			bot.setHtmlWithSelection(
+				'<table>' +
+				'<tbody>' +
+				'<tr>' +
+				'<td>appkes</td>' +
+				'</tr>' +
+				'<tr>' +
+				'<td>pearrs</td>' +
+				'</tr>' +
+				'</tbody>' +
+				'</table>'
+			);
 
-      resumeAfter(editor, 'spellCheckComplete', function() {
-        var table = editor.editable().findOne('table');
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var table = editor.editable().findOne('table');
 
-        tc.assertHtml(
-          '<table>' +
-    				'<tbody>' +
-    					'<tr>' +
-    						'<td><span class="nanospell-typo">appkes</span></td>' +
-    					'</tr>' +
-    					'<tr>' +
-    						'<td><span class="nanospell-typo">pearrs</span></td>' +
-    					'</tr>' +
-    				'</tbody>' +
-    			'</table>',
-          table.getOuterHtml()
-        );
-      });
+				tc.assertHtml(
+					'<table>' +
+					'<tbody>' +
+					'<tr>' +
+					'<td><span class="nanospell-typo">appkes</span></td>' +
+					'</tr>' +
+					'<tr>' +
+					'<td><span class="nanospell-typo">pearrs</span></td>' +
+					'</tr>' +
+					'</tbody>' +
+					'</table>',
+					table.getOuterHtml()
+				);
+			});
 
-      wait();
-    },
-    'test it can spellcheck a table after p conversion': function() {
-      var bot = this.editorBot,
+			wait();
+		},
+		'test it can spellcheck a table after p conversion': function () {
+			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter;
 
-      bot.setHtmlWithSelection(
-  			'<table>' +
-  				'<tbody>' +
-  					'<tr>' +
-  						'<td><p>appkes</p></td>' +
-  					'</tr>' +
-            '<tr>' +
-  						'<td><p>pearrs</p></td>' +
-  					'</tr>' +
-  				'</tbody>' +
-  			'</table>'
-  		);
+			bot.setHtmlWithSelection(
+				'<table>' +
+				'<tbody>' +
+				'<tr>' +
+				'<td><p>appkes</p></td>' +
+				'</tr>' +
+				'<tr>' +
+				'<td><p>pearrs</p></td>' +
+				'</tr>' +
+				'</tbody>' +
+				'</table>'
+			);
 
-      resumeAfter(editor, 'spellCheckComplete', function() {
-        var convertedTable = editor.editable().findOne('table');
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var convertedTable = editor.editable().findOne('table');
 
-        tc.assertHtml(
-          '<table>' +
-    				'<tbody>' +
-    					'<tr>' +
-    						'<td><p><span class="nanospell-typo">appkes</span></p></td>' +
-    					'</tr>' +
-    					'<tr>' +
-    						'<td><p><span class="nanospell-typo">pearrs</span></p></td>' +
-    					'</tr>' +
-    				'</tbody>' +
-    			'</table>',
-          convertedTable.getOuterHtml()
-        );
-      });
+				tc.assertHtml(
+					'<table>' +
+					'<tbody>' +
+					'<tr>' +
+					'<td><p><span class="nanospell-typo">appkes</span></p></td>' +
+					'</tr>' +
+					'<tr>' +
+					'<td><p><span class="nanospell-typo">pearrs</span></p></td>' +
+					'</tr>' +
+					'</tbody>' +
+					'</table>',
+					convertedTable.getOuterHtml()
+				);
+			});
 
-      wait();
-    }
+			wait();
+		}
 
-  });
+	});
 
 })();
