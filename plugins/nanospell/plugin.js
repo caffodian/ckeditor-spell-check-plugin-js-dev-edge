@@ -198,7 +198,7 @@
 			// reached the end of block,
 			// so just return what we've walked
 			// of the current word.
-			return { word: word, range: wordRange };
+			if (word) return { word: word, range: wordRange };
 		}
 	};
 
