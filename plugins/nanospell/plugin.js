@@ -723,14 +723,9 @@
 				range.selectNodeContents(block);
 				var wordwalker = new self.WordWalker(range);
 
-<<<<<<< HEAD
 				while(currentWordObj = wordwalker.getNextWord()) {
 					word = currentWordObj.word;
 					if (word) words.push(word);
-=======
-				while (word = wordwalker.getNextWord()) {
-					words.push(word.word);
->>>>>>> 9ed9e320c631180994c13a8e55ce1f451d22314f
 				}
 				return words.join(" ");
 			}
