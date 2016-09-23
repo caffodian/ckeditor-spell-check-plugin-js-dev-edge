@@ -29,7 +29,7 @@ bender.test( {
 
 		while (currWordObj = wordwalker.getNextWord()) {
 			word = currWordObj.word;
-			if (word) wordsReturned.push(word);
+			wordsReturned.push(word);
 		}
 
 		return wordsReturned;
