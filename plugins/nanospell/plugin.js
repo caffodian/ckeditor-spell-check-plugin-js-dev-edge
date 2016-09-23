@@ -190,7 +190,7 @@
 				}
 				word += text.substr(ww.offset);
 				ww.offset = 0;
-				wordRange.setEndAfter(ww.textNode);
+				wordRange.setEnd(currentTextNode, i);
 				currentTextNode = ww.rootBlockTextNodeWalker.next();
 
 				ww.textNode = currentTextNode;
