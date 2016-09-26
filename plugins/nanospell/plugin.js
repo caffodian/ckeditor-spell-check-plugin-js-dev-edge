@@ -937,8 +937,55 @@
 					}
 				}
 			);
+
+			range.shrink(CKEDITOR.SHRINK_TEXT);
 			range.extractContents().appendTo(span);
 			range.insertNode(span);
+
+			// In cases where a spellcheck span must cross a nested inline element,
+			// extractContents will duplicate the tag, altering the HTML structure.
+			// The following checks to see if this has happened and corrects it
+			//
+			// Example:
+			// <p><strong>word missspelli</strong>ngs
+			// After spellcheck span insertion:
+			// <p><strong>word </strong><span class="nanospell-typo"><strong>missspelli</strong>ngs</span>
+			
+			var firstChild = span.getFirst(),
+				previousSibling = span.getPrevious();
+
+			if (previousSibling) {
+
+				// if the first child of the span element is an element and not a text
+				// node, and the element name matches the previous element's name,
+				// then tag duplication has occurred.
+				if ((firstChild.type === CKEDITOR.NODE_ELEMENT &&
+					firstChild.getName() === previousSibling.getName())) {
+
+					var name = firstChild.getName(),
+						parent = span.getParent(),
+						parentHtml = parent.getHtml(),
+						spanHtml = span.getOuterHtml(),
+						previousHtml = previousSibling.getOuterHtml(),
+						combinedHtml = previousHtml + spanHtml,
+						fixedSpan, fixedPrevious, fixedCombined, fixedParent,
+						openTagRegEx, closeTagRegEx;
+
+					// remove the duplicate closing tag from the previous element, and
+					// the duplicate opening tag from inside the span element
+					openTagRegEx = new RegExp('<\s*' + name + '.*?>', 'g');
+					closeTagRegEx = new RegExp('</\s*' + name + '.*?>', 'g');
+					fixedSpan = spanHtml.replace(openTagRegEx, '');
+					fixedPrevious = previousHtml.replace(closeTagRegEx, '');
+					fixedCombined = fixedPrevious + fixedSpan;
+
+					// replace the innerHTML of the parent element with the modified
+					// HTML string
+					fixedParent = parentHtml.replace(combinedHtml, fixedCombined);
+					parent.$.innerHTML = fixedParent;
+				}
+			}
+
 		},
 		markTypos: function (editor, node) {
 			var range = editor.createRange();
