@@ -17,7 +17,10 @@ bender.test( {
 		var editor = this.editorBot.editor,
 			range,
 			wordwalker,
-			wordsReturned = [],
+			wordsReturned = {
+				ranges: [],
+				words: []
+			},
 			currWordObj,
 			word;
 
@@ -29,7 +32,9 @@ bender.test( {
 
 		while (currWordObj = wordwalker.getNextWord()) {
 			word = currWordObj.word;
-			wordsReturned.push(word);
+			range = currWordObj.range;
+			wordsReturned.words.push(word);
+			wordsReturned.ranges.push(range);
 		}
 
 		return wordsReturned;
@@ -41,8 +46,10 @@ bender.test( {
 		bot.setHtmlWithSelection( '<p>foo bar baz</p>' );
 
 		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst() );
+		rangesReturned = wordsReturned.ranges.map(function(range) { return range.extractContents().$.textContent});
 
-		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
+		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned.words);
+		arrayAssert.itemsAreEqual(wordsReturned.words, rangesReturned);
 	},
 
 	'test walking a simple paragraph with inline formats': function() {
