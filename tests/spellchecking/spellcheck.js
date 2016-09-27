@@ -11,6 +11,13 @@
 	};
 
 	bender.test({
+		_should: {
+			ignore: {
+				'test it can spellcheck a word that uses multiple formatting tags': true,
+				'test it can spellcheck a word that spans an inline closing tag': true,
+				'test it can spellcheck a word that spans an inline opening tag': true
+			}
+		},
 		assertHtml: function (expected, actual, msg) {
 			assert.areEqual(bender.tools.fixHtml(expected), bender.tools.fixHtml(actual), msg);
 		},
