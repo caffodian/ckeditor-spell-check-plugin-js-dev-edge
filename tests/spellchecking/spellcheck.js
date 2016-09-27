@@ -270,7 +270,7 @@
 			wait();
 		},
 
-		'test it can spellcheck a word that is the first child of a formatting element': function () {
+		'test it can spellcheck a word that is the first child of an inline element': function () {
 			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
@@ -296,7 +296,7 @@
 			wait();
 		},
 
-		'test it can spellcheck a word that is the last child of a formatting element': function () {
+		'test it can spellcheck a word that is the last child of an inline element': function () {
 			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
