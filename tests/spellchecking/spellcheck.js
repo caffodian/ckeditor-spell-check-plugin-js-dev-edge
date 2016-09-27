@@ -447,6 +447,32 @@
 			wait();
 		},
 
+		'test it can spellcheck a word that spans an entire inline tag': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'ap<strong>pk</strong>es' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<span class="nanospell-typo">ap<strong>pk</strong>es</span>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
+
+			wait();
+		}
+
 	});
 
 })();
