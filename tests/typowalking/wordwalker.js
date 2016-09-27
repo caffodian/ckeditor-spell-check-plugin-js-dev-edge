@@ -39,9 +39,15 @@ bender.test( {
 
 		return wordsReturned;
 	},
+	getWordRanges: function(ranges) {
+		return ranges.map(function(range) {
+			return range.cloneContents().$.textContent;
+		});
+	},
 
 	'test walking a simple paragraph': function() {
 		var bot = this.editorBot,
+			wordObjectsReturned,
 			rangesReturned,
 			wordsReturned;
 		bot.setHtmlWithSelection( '<p>foo bar baz</p>' );
