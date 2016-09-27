@@ -353,7 +353,99 @@
 			//	'</p>'
 
 			wait();
-		}
+		},
+
+		'test it can spellcheck a word with nested formatting tags': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'<strong><em>pearrs</em></strong>' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<strong><em><span class="nanospell-typo">pearrs</span></em></strong>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
+
+			wait();
+		},
+
+		'test it can spellcheck a word that spans an inline closing tag': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'<strong>apples pear</strong>rs' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<strong><span class="nanospell-typo">pear</span></strong>' +
+						'<span class="nanospell-typo">rs</span>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
+
+			// Currently fails.  Actual output:
+			//	'<p>' +
+			//		'<strong>apples </strong>' +
+			//		'<span class="nanospell-typo"><strong>pear</strong>rs</span>' +
+			//	'</p>'
+
+			wait();
+		},
+
+		'test it can spellcheck a word that spans an inline opening tag': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'appk<strong>es pears</strong>' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<span class="nanospell-typo">appk</span>' +
+						'<strong><span class="nanospell-typo">es</span> pears</strong>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
+
+			// Currently fails.  Actual output:
+			//	'<p>' +
+			//		'<span class="nanospell-typo">appk<strong>es</strong></span>' +
+			//		'<strong> pears</strong>' +
+			//	'</p>'
+
+			wait();
+		},
 
 	});
 
