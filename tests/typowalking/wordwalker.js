@@ -125,7 +125,12 @@ bender.test( {
 
 	'test walking in a double nested list': function() {
 		var bot = this.editorBot,
-			wordsReturned,
+			outerWordObjectsReturned,
+			outerRangesReturned,
+			outerWordsReturned,
+			innerWordObjectsReturned,
+			innerRangesReturned,
+			innerWordsReturned,
 			outerUnorderedList,
 			innerOrderedList;
 		bot.setHtmlWithSelection(
@@ -140,18 +145,31 @@ bender.test( {
 
 		outerUnorderedList = this.editor.editable().getFirst();
 
+		outerWordObjectsReturned = this.getWordObjectsWithWordWalker( outerUnorderedList.getFirst() );
+		outerRangesReturned = this.getWordRanges(outerWordObjectsReturned.ranges);
+		outerWordsReturned = outerWordObjectsReturned.words;
+
 		innerOrderedList = outerUnorderedList.getFirst().getFirst();
+
+		innerWordObjectsReturned = this.getWordObjectsWithWordWalker( innerOrderedList.getFirst() );
+		innerRangesReturned = this.getWordRanges(innerWordObjectsReturned.ranges);
+		innerWordsReturned = innerWordObjectsReturned.words;
 
 		// due to the way that range iterators work, the `li` get passed in.
 
 		// we special-case the walker to not follow into nested blocks
 		// because of the special list case where they get passed in twice.
-		arrayAssert.itemsAreEqual([], this.getWordsWithWordWalker( outerUnorderedList.getFirst() ));
-		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], this.getWordsWithWordWalker( innerOrderedList.getFirst() ));
+		arrayAssert.itemsAreEqual([], outerWordsReturned);
+		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], innerWordsReturned);
+
+		arrayAssert.itemsAreEqual(outerWordsReturned, outerRangesReturned);
+		arrayAssert.itemsAreEqual(innerWordsReturned, innerRangesReturned);
 	},
 
 	'test walking across a double nested list': function() {
 		var bot = this.editorBot,
+			wordObjectsReturned,
+			rangesReturned,
 			wordsReturned;
 		bot.setHtmlWithSelection(
 			'<ul>' +
@@ -162,14 +180,22 @@ bender.test( {
 				'</li>' +
 			'</ul>' );
 
-		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst().getFirst() );
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(this.editor.editable().getFirst().getFirst() );
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
+		wordsReturned = wordObjectsReturned.words;
 
 		arrayAssert.itemsAreEqual(['foo'], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
 
 	'test walking nested list wrapped with text nodes': function() {
 		var bot = this.editorBot,
-			wordsReturned,
+			outerWordObjectsReturned,
+			outerRangesReturned,
+			outerWordsReturned,
+			innerWordObjectsReturned,
+			innerRangesReturned,
+			innerWordsReturned,
 			outerUnorderedList,
 			innerOrderedList;
 		bot.setHtmlWithSelection(
@@ -184,14 +210,27 @@ bender.test( {
 
 		outerUnorderedList = this.editor.editable().getFirst();
 
+		outerWordObjectsReturned = this.getWordObjectsWithWordWalker( outerUnorderedList.getFirst() );
+		outerRangesReturned = this.getWordRanges(outerWordObjectsReturned.ranges);
+		outerWordsReturned = outerWordObjectsReturned.words;
+
 		innerOrderedList = outerUnorderedList.getFirst().getChild(1);
 
-		arrayAssert.itemsAreEqual(['foo', 'baz'], this.getWordsWithWordWalker( outerUnorderedList.getFirst() ));
-		arrayAssert.itemsAreEqual(['bar'], this.getWordsWithWordWalker( innerOrderedList.getFirst() ));
+		innerWordObjectsReturned = this.getWordObjectsWithWordWalker( innerOrderedList.getFirst() );
+		innerRangesReturned = this.getWordRanges(innerWordObjectsReturned.ranges);
+		innerWordsReturned = innerWordObjectsReturned.words;
+
+		arrayAssert.itemsAreEqual(['foo', 'baz'], outerWordsReturned);
+		arrayAssert.itemsAreEqual(['bar'], innerWordsReturned);
+
+		arrayAssert.itemsAreEqual(outerWordsReturned, outerRangesReturned);
+		arrayAssert.itemsAreEqual(innerWordsReturned, innerRangesReturned);
 	},
 
 	'test walking list item which has textnode with table sibling': function() {
 		var bot = this.editorBot,
+			wordObjectsReturned,
+			rangesReturned,
 			wordsReturned,
 			outerUnorderedList,
 			innerOrderedList;
@@ -217,11 +256,18 @@ bender.test( {
 
 		outerUnorderedList = this.editor.editable().getFirst();
 
-		arrayAssert.itemsAreEqual(['asdf'], this.getWordsWithWordWalker( outerUnorderedList.getFirst() ));
+		wordObjectsReturned = this.getWordObjectsWithWordWalker( outerUnorderedList.getFirst() );
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
+		wordsReturned = wordObjectsReturned.words;
+
+		arrayAssert.itemsAreEqual(['asdf'], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
 
 	'test it ignores spellcheck spans': function() {
 		var bot = this.editorBot,
+			wordObjectsReturned,
+			rangesReturned,
 			wordsReturned,
 			paragraphWithSpellCheckSpans;
 
@@ -231,14 +277,19 @@ bender.test( {
 
 		paragraphWithSpellCheckSpans = this.editor.editable().getFirst();
 
-		wordsReturned = this.getWordsWithWordWalker(paragraphWithSpellCheckSpans);
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithSpellCheckSpans);
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
+		wordsReturned = wordObjectsReturned.words;
 
 		arrayAssert.itemsAreEqual(['This', 'paragraph', 'has', 'a', 'in', 'it'], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
 
 	'test walking paragraph with breaks and subscripts and superscripts': function() {
 		var bot = this.editorBot,
 			paragraphWithTags,
+			wordObjectsReturned,
+			rangesReturned,
 			wordsReturned;
 
 		bot.setHtmlWithSelection(
@@ -247,8 +298,11 @@ bender.test( {
 
 		paragraphWithTags = this.editor.editable().getFirst();
 
-		wordsReturned = this.getWordsWithWordWalker(paragraphWithTags);
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithTags);
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
+		wordsReturned = wordObjectsReturned.words;
 
 		arrayAssert.itemsAreEqual(['paragraph', 'break', 'superscript', 'paragraph', 'subscript'], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	}
 } );
