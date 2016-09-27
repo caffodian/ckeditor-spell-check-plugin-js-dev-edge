@@ -268,6 +268,91 @@
 			});
 
 			wait();
+		},
+
+		'test it can spellcheck a word that is the first child of a formatting element': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'<strong>appkes pears</strong>' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<strong><span class="nanospell-typo">appkes</span> pears</strong>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
+
+			wait();
+		},
+
+		'test it can spellcheck a word that is the last child of a formatting element': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'<strong>apples pearrs</strong>' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<strong>apples <span class="nanospell-typo">pearrs</span></strong>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
+
+			wait();
+		},
+
+		'test it can spellcheck a word that uses multiple formatting tags': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'<strong>pear</strong><em>rs</em>' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<span class="nanospell-typo"><strong>pear</strong><em>rs</em></span>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
+
+			// Currently fails.  Actual output:
+			//	'<p>' +
+			//		'<strong></strong>' +
+			//		'<span class="nanospell-typo"><strong>pear</strong><em>rs</em></span>' +
+			//		'<em></em>' +
+			//	'</p>'
+
+			wait();
 		}
 
 	});
