@@ -13,7 +13,7 @@ bender.test( {
 	setUp: function() {
 		this.editor = this.editorBot.editor;
 	},
-	getWordsWithWordWalker: function(root) {
+	getWordObjectsWithWordWalker: function(root) {
 		var editor = this.editorBot.editor,
 			range,
 			wordwalker,
@@ -52,25 +52,34 @@ bender.test( {
 			wordsReturned;
 		bot.setHtmlWithSelection( '<p>foo bar baz</p>' );
 
-		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst() );
-		rangesReturned = wordsReturned.ranges.map(function(range) { return range.cloneContents().$.textContent });
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(this.editor.editable().getFirst() );
+		wordsReturned = wordObjectsReturned.words;
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
 
-		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned.words);
-		arrayAssert.itemsAreEqual(wordsReturned.words, rangesReturned);
+		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
 
 	'test walking a simple paragraph with inline formats': function() {
 		var bot = this.editorBot,
+			wordObjectsReturned,
+			rangesReturned,
 			wordsReturned;
+
 		bot.setHtmlWithSelection( '<p>f<i>o</i>o <strong>b</strong>ar <em>baz</em></p>' );
 
-		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst() );
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(this.editor.editable().getFirst() );
+		wordsReturned = wordObjectsReturned.words;
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
 
 	'test walking a single item list': function() {
 		var bot = this.editorBot,
+			wordObjectsReturned,
+			rangesReturned,
 			wordsReturned;
 		bot.setHtmlWithSelection(
 			'<ol>' +
@@ -78,13 +87,18 @@ bender.test( {
 			'</ol>'
 		);
 
-		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst().getFirst() );
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(this.editor.editable().getFirst().getFirst() );
+		wordsReturned = wordObjectsReturned.words;
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
 
 	'test walking multiple list items': function() {
 		var bot = this.editorBot,
+			wordObjectsReturned,
+			rangesReturned,
 			wordsReturned,
 			list;
 		bot.setHtmlWithSelection(
@@ -96,10 +110,17 @@ bender.test( {
 		);
 
 		list = this.editor.editable().getFirst();
+		var liOneWordObjects = this.getWordObjectsWithWordWalker( list.getChild(0) ),
+			liTwoWordObjects = this.getWordObjectsWithWordWalker( list.getChild(1) ),
+			liThreeWordObjects = this.getWordObjectsWithWordWalker( list.getChild(2) );
 
-		arrayAssert.itemsAreEqual(['foo', 'bar'], this.getWordsWithWordWalker( list.getChild(0) ));
-		arrayAssert.itemsAreEqual(['bar', 'baz'], this.getWordsWithWordWalker( list.getChild(1) ));
-		arrayAssert.itemsAreEqual(['baz', 'foo'], this.getWordsWithWordWalker( list.getChild(2) ));
+		arrayAssert.itemsAreEqual(['foo', 'bar'], liOneWordObjects.words);
+		arrayAssert.itemsAreEqual(['bar', 'baz'], liTwoWordObjects.words);
+		arrayAssert.itemsAreEqual(['baz', 'foo'], liThreeWordObjects.words);
+
+		arrayAssert.itemsAreEqual(liOneWordObjects.words, this.getWordRanges(liOneWordObjects.ranges));
+		arrayAssert.itemsAreEqual(liTwoWordObjects.words, this.getWordRanges(liTwoWordObjects.ranges));
+		arrayAssert.itemsAreEqual(liThreeWordObjects.words, this.getWordRanges(liThreeWordObjects.ranges));
 	},
 
 	'test walking in a double nested list': function() {
