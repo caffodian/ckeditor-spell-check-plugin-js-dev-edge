@@ -42,11 +42,12 @@ bender.test( {
 
 	'test walking a simple paragraph': function() {
 		var bot = this.editorBot,
+			rangesReturned,
 			wordsReturned;
 		bot.setHtmlWithSelection( '<p>foo bar baz</p>' );
 
 		wordsReturned = this.getWordsWithWordWalker(this.editor.editable().getFirst() );
-		rangesReturned = wordsReturned.ranges.map(function(range) { return range.extractContents().$.textContent});
+		rangesReturned = wordsReturned.ranges.map(function(range) { return range.cloneContents().$.textContent });
 
 		arrayAssert.itemsAreEqual(['foo', 'bar', 'baz'], wordsReturned.words);
 		arrayAssert.itemsAreEqual(wordsReturned.words, rangesReturned);
