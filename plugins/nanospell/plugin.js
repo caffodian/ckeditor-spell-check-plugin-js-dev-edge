@@ -907,10 +907,15 @@
 			}
 		},
 		addPersonal: function (word) {
-			return this.suggestions.addPersonal(word);
+			if (this.suggestions.enabled) {
+				return this.suggestions.addPersonal(word);
+			}
 		},
 		hasPersonal: function (word) {
-			return this.suggestions.hasPersonal(word);
+			if (this.suggestions.enabled) {
+				return this.suggestions.hasPersonal(word);
+			}
+			return false;
 		},
 		validWordToken: function (word) {
 			if (!word) {
