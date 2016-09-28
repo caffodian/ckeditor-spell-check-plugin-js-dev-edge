@@ -168,7 +168,7 @@
 				// text nodes but we traversed an element that should cause a word break
 				if (text && i === text.length && ww.hitWordBreak) {
 					ww.hitWordBreak = false;
-					if (word) return {word: word, range: wordRange};
+					return { word: word, range: wordRange };
 				}
 				text = currentTextNode.getText();
 				for (i = ww.offset; i < text.length; i++) {
@@ -177,12 +177,20 @@
 						wordRange.setEnd(currentTextNode, i);
 
 						ww.offset = ww.getOffsetToNextNonSeparator(text, i);
-						if (word) return {word: word, range: wordRange};
+						if (word) {
+							// if you hit a word separator and there is word text, return it
+							return { word: word, range: wordRange };
+						}
+						else {
+							// if the word is blank, set the start of the range to the next
+							// non-separator text
+							wordRange.setStart(currentTextNode, ww.offset);
+						}
 					}
 				}
 				word += text.substr(ww.offset);
 				ww.offset = 0;
-				wordRange.setEndAfter(ww.textNode);
+				wordRange.setEnd(currentTextNode, i);
 				currentTextNode = ww.rootBlockTextNodeWalker.next();
 
 				ww.textNode = currentTextNode;
@@ -708,14 +716,16 @@
 
 			function getWords(block) {
 				var range = editor.createRange(),
+					currentWordObj,
 					words = [],
 					word;
 
 				range.selectNodeContents(block);
 				var wordwalker = new self.WordWalker(range);
 
-				while (word = wordwalker.getNextWord()) {
-					words.push(word.word);
+				while(currentWordObj = wordwalker.getNextWord()) {
+					word = currentWordObj.word;
+					if (word) words.push(word);
 				}
 				return words.join(" ");
 			}
