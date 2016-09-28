@@ -947,6 +947,8 @@
 					}
 				}
 			);
+
+			range.shrink(CKEDITOR.SHRINK_TEXT);
 			range.extractContents().appendTo(span);
 			range.insertNode(span);
 		},

@@ -11,6 +11,13 @@
 	};
 
 	bender.test({
+		_should: {
+			ignore: {
+				'test it can spellcheck a word that uses multiple formatting tags': true,
+				'test it can spellcheck a word that spans an inline closing tag': true,
+				'test it can spellcheck a word that spans an inline opening tag': true
+			}
+		},
 		assertHtml: function (expected, actual, msg) {
 			assert.areEqual(bender.tools.fixHtml(expected), bender.tools.fixHtml(actual), msg);
 		},
@@ -264,6 +271,209 @@
 					'</tbody>' +
 					'</table>',
 					convertedTable.getOuterHtml()
+				);
+			});
+
+			wait();
+		},
+
+		'test it can spellcheck a word that is the first child of an inline element': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'<strong>appkes pears</strong>' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<strong><span class="nanospell-typo">appkes</span> pears</strong>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
+
+			wait();
+		},
+
+		'test it can spellcheck a word that is the last child of an inline element': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'<strong>apples pearrs</strong>' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<strong>apples <span class="nanospell-typo">pearrs</span></strong>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
+
+			wait();
+		},
+
+		'test it can spellcheck a word that uses multiple formatting tags': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'<strong>pear</strong><em>rs</em>' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<span class="nanospell-typo"><strong>pear</strong><em>rs</em></span>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
+
+			// Currently fails.  Actual output:
+			//	'<p>' +
+			//		'<strong></strong>' +
+			//		'<span class="nanospell-typo"><strong>pear</strong><em>rs</em></span>' +
+			//		'<em></em>' +
+			//	'</p>'
+
+			wait();
+		},
+
+		'test it can spellcheck a word with nested formatting tags': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'<strong><em>pearrs</em></strong>' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<strong><em><span class="nanospell-typo">pearrs</span></em></strong>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
+
+			wait();
+		},
+
+		'test it can spellcheck a word that spans an inline closing tag': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'<strong>apples pear</strong>rs' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<strong><span class="nanospell-typo">pear</span></strong>' +
+						'<span class="nanospell-typo">rs</span>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
+
+			// Currently fails.  Actual output:
+			//	'<p>' +
+			//		'<strong>apples </strong>' +
+			//		'<span class="nanospell-typo"><strong>pear</strong>rs</span>' +
+			//	'</p>'
+
+			wait();
+		},
+
+		'test it can spellcheck a word that spans an inline opening tag': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'appk<strong>es pears</strong>' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<span class="nanospell-typo">appk</span>' +
+						'<strong><span class="nanospell-typo">es</span> pears</strong>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+			});
+
+			// Currently fails.  Actual output:
+			//	'<p>' +
+			//		'<span class="nanospell-typo">appk<strong>es</strong></span>' +
+			//		'<strong> pears</strong>' +
+			//	'</p>'
+
+			wait();
+		},
+
+		'test it can spellcheck a word that spans an entire inline tag': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+					'ap<strong>pk</strong>es' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+						'<span class="nanospell-typo">ap<strong>pk</strong>es</span>' +
+					'</p>',
+					paragraph.getOuterHtml()
 				);
 			});
 
