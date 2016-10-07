@@ -314,7 +314,7 @@ bender.test( {
 			wordsReturned;
 
 		bot.setHtmlWithSelection(
-			"<p>couldn't shouldn't wouldn't</p>"
+			"<p>couldn't shouldn't wouldn't dunno'grammar</p>"
 		);
 
 		paragraphWithTags = this.editor.editable().getFirst();
@@ -323,7 +323,8 @@ bender.test( {
 		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
 		wordsReturned = wordObjectsReturned.words;
 
-		arrayAssert.itemsAreEqual(["couldn't", "shouldn't", "wouldn't"], wordsReturned);
+		arrayAssert.itemsAreEqual(["couldn't", "shouldn't", "wouldn't", "dunno'grammar"], wordsReturned);
 		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
-	}
+	},
+
 } );
