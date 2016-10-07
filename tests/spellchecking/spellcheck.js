@@ -32,7 +32,8 @@
 					"appkes": ["apples"],
 					"pearrs": ["pears"],
 					"bannanas": ["bananas"],
-					"missspelling": ["misspelling"]
+					"missspelling": ["misspelling"],
+					"qui": ["quote", "quick"],
 				}
 			};
 
@@ -478,7 +479,37 @@
 			});
 
 			wait();
-		}
+		},
+
+		'test it can spellcheck an already spellchecked word into correctness': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+				'qui^' +
+				'</p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+					'<span class="nanospell-typo">qui</span>' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+
+				// type the rest of the word
+
+			});
+
+			wait();
+		},
+
 
 	});
 
