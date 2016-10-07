@@ -293,7 +293,7 @@ bender.test( {
 			wordsReturned;
 
 		bot.setHtmlWithSelection(
-			'<p>paragraph<br/>break<sup>superscript</sup> paragraph<sub>subscript</sub>'
+			'<p>paragraph<br/>break<sup>superscript</sup> paragraph<sub>subscript</sub></p>'
 		);
 
 		paragraphWithTags = this.editor.editable().getFirst();
@@ -303,6 +303,27 @@ bender.test( {
 		wordsReturned = wordObjectsReturned.words;
 
 		arrayAssert.itemsAreEqual(['paragraph', 'break', 'superscript', 'paragraph', 'subscript'], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
+	},
+
+	'test walking contractions': function() {
+		var bot = this.editorBot,
+			paragraphWithTags,
+			wordObjectsReturned,
+			rangesReturned,
+			wordsReturned;
+
+		bot.setHtmlWithSelection(
+			"<p>couldn't shouldn't wouldn't</p>"
+		);
+
+		paragraphWithTags = this.editor.editable().getFirst();
+
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithTags);
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
+		wordsReturned = wordObjectsReturned.words;
+
+		arrayAssert.itemsAreEqual(["couldn't", "shouldn't", "wouldn't"], wordsReturned);
 		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	}
 } );
