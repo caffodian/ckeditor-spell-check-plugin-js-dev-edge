@@ -115,7 +115,7 @@
 		ww.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(range);
 		ww.rootBlockTextNodeWalker.evaluator = isRootBlockTextNode;
 
-		var wordSeparatorRegex = /[.,"'?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
+		var wordSeparatorRegex = /[.,"?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
 
 		ww.isWordSeparator = function (character) {
 			if (!character)
