@@ -77,10 +77,7 @@
 				block = path.block,
 				blockIsStartNode = block && block.equals(startNode),
 				blockLimit = path.blockLimit,
-				blockLimitIsStartNode = blockLimit && blockLimit.equals(startNode),
-				isInSpellCheckSpan = path.contains(function (el) {
-					return el.getName() === 'span' && el.hasClass('nanospell-typo');
-				})
+				blockLimitIsStartNode = blockLimit && blockLimit.equals(startNode);
 
 			// tables and list items can get a bit weird with getNextParagraph()
 			// for example causing list item descendants to be included as part of the original list item
@@ -91,7 +88,6 @@
 				node.getLength() > 0 &&  // and it's not empty
 				( !node.isReadOnly() ) &&   // or read only
 				isNotBookmark(node) && // and isn't a fake bookmarking node
-				!isInSpellCheckSpan && // it isn't in a spellcheck span
 				(blockLimit ? blockLimitIsStartNode : true) && // check we don't enter another block-like element
 				(block ? blockIsStartNode : true); // check we don't enter nested blocks (special list case since it's not considered a limit)
 
