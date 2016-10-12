@@ -19,7 +19,7 @@
 			}
 		},
 		assertHtml: function (expected, actual, msg) {
-			assert.areEqual(bender.tools.fixHtml(expected), bender.tools.fixHtml(actual), msg);
+			assert.areEqual(bender.tools.compatHtml(expected, 1, 1, 1, 1), bender.tools.compatHtml(actual, 1, 1, 1, 1), msg);
 		},
 		setUp: function () {
 			this.server = sinon.fakeServer.create();
