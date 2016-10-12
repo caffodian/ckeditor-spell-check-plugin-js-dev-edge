@@ -940,6 +940,8 @@
 			return !this.hasPersonal(word);
 		},
 		wrapWithTypoSpan: function (editor, range) {
+			// TODO first, check if the range actually is a typo span (or just inside a typo span) already
+
 			var span = editor.document.createElement(
 				'span',
 				{
@@ -949,8 +951,13 @@
 				}
 			);
 
-			range.shrink(CKEDITOR.SHRINK_TEXT);
-			range.extractContents().appendTo(span);
+			// TODO remove all partial typo spans within the range
+
+			var textOnlyRange = range.clone();
+
+			textOnlyRange.shrink(CKEDITOR.SHRINK_TEXT);
+			var extracted = textOnlyRange.extractContents();
+			extracted.appendTo(span);
 			range.insertNode(span);
 		},
 		markTypos: function (editor, node) {
