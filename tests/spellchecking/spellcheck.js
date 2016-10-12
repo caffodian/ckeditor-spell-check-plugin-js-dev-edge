@@ -504,6 +504,19 @@
 				);
 
 				// type the rest of the word
+				editor.insertHtml('ckly');
+
+				var range = new CKEDITOR.dom.range( editor.editable() );
+				range.selectNodeContents( paragraph );
+				var wordwalker = new editor.plugins.nanospell.WordWalker(range);
+				var currWordObj, word, wordsReturned = [];
+
+				while (currWordObj = wordwalker.getNextWord()) {
+					word = currWordObj.word;
+					wordsReturned.push(word);
+				}
+
+				assert.areEqual(['quickly'], wordsReturned);
 
 			});
 
