@@ -952,9 +952,7 @@
 			return false;
 		},
 		wrapWithTypoSpan: function (editor, range) {
-			var bookmark;
 			var span;
-			var existingSpan;
 
 			// if the range is entirely a typo span already, we can abort
 
