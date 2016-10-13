@@ -999,7 +999,6 @@
 					continue;
 				}
 				badRanges.push(match.range)
-
 			}
 
 			var rangeListIterator = (new CKEDITOR.dom.rangeList(badRanges)).createIterator();
