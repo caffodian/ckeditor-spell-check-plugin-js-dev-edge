@@ -972,6 +972,7 @@
 			range.shrink(CKEDITOR.SHRINK_TEXT);
 			var extracted = range.extractContents();
 			extracted.appendTo(span);
+			// clear any leftover spans which may be left behind from merging words
 			this.clearAllSpellCheckingSpans(span);
 			range.insertNode(span);
 		},
