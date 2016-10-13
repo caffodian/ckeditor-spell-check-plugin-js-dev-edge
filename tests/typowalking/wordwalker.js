@@ -263,28 +263,6 @@ bender.test( {
 		arrayAssert.itemsAreEqual(['asdf'], wordsReturned);
 		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
-
-	'test it ignores spellcheck spans': function() {
-		var bot = this.editorBot,
-			wordObjectsReturned,
-			rangesReturned,
-			wordsReturned,
-			paragraphWithSpellCheckSpans;
-
-		bot.setHtmlWithSelection(
-			'<p>This paragraph has a <span class="nanospell-typo">missspelling</span> in it</p>'
-		);
-
-		paragraphWithSpellCheckSpans = this.editor.editable().getFirst();
-
-		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithSpellCheckSpans);
-		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
-		wordsReturned = wordObjectsReturned.words;
-
-		arrayAssert.itemsAreEqual(['This', 'paragraph', 'has', 'a', 'in', 'it'], wordsReturned);
-		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
-	},
-
 	'test walking paragraph with breaks and subscripts and superscripts': function() {
 		var bot = this.editorBot,
 			paragraphWithTags,
@@ -305,7 +283,6 @@ bender.test( {
 		arrayAssert.itemsAreEqual(['paragraph', 'break', 'superscript', 'paragraph', 'subscript'], wordsReturned);
 		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
-
 	'test walking contractions': function() {
 		var bot = this.editorBot,
 			paragraphWithTags,
