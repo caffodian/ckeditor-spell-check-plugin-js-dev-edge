@@ -554,6 +554,28 @@
 			wait();
 		},
 
+		'test rangeIsFullyMarked expands text nodes and returns true': function() {
+			// this test will be a bit weird,
+			// because it is one of the few actual unit tests in here.
+
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p><span class="nanospell-typo">existingtypo</span></p>'
+			);
+
+			var typoSpan = editor.editable().findOne('span.nanospell-typo');
+			var range = editor.createRange();
+
+			range.selectNodeContents(typoSpan); // this will start and end inside the span
+
+			assert.areEqual(true, editor.plugins.nanospell.rangeIsFullyMarked(range));
+
+		}
+
 	});
 
 })();

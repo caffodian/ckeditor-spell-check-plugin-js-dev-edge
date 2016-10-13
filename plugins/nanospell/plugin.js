@@ -939,7 +939,7 @@
 			}
 			return !this.hasPersonal(word);
 		},
-		rangeIsFullyMarked: function (editor, range) {
+		rangeIsFullyMarked: function (range) {
 			var startContainer, endContainer;
 			range.optimize();
 
@@ -956,7 +956,7 @@
 
 			// if the range is entirely a typo span already, we can abort
 
-			if (this.rangeIsFullyMarked(editor, range)) {
+			if (this.rangeIsFullyMarked(range)) {
 				return;
 			}
 
