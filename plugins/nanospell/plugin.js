@@ -140,9 +140,9 @@
 			return i;
 
 		},
-		normalizeWord: function(word) {
+		normalizeWord: function (word) {
 			// hex 200b = 8203 = zerowidth space
-			return word.replace(/\u200B/g,'');
+			return word.replace(/\u200B/g, '');
 		},
 		getNextWord: function () {
 			var ww = this;
@@ -465,7 +465,7 @@
 					clearTimeout(self._timer);
 					self._timer = null;
 				}
-				clearAllSpellCheckingSpans(editor.editable());
+				self.clearAllSpellCheckingSpans(editor.editable());
 			}
 
 			function checkNow(rootElement) {
@@ -521,7 +521,7 @@
 				if (spellCheckSpan) {
 					target = findNearestParentBlock(target);
 					var bookmarks = editor.getSelection().createBookmarks(true);
-					unwrapTypoSpan(spellCheckSpan);
+					self.unwrapTypoSpan(spellCheckSpan);
 					editor.getSelection().selectBookmarks(bookmarks);
 				}
 
@@ -623,23 +623,6 @@
 				rootElement.setCustomData('spellCheckInProgress', false);
 				self._timer = null;
 				editor.fire(EVENT_NAMES.SPELLCHECK_COMPLETE);
-			}
-
-			function clearAllSpellCheckingSpans(element) {
-				var spans = element.find('span.nanospell-typo');
-
-				for (var i = 0; i < spans.count(); i++) {
-					var span = spans.getItem(i);
-					unwrapTypoSpan(span);
-				}
-
-			}
-
-			function clearAllSpellCheckingSpansFromString(htmlString) {
-				var element = new CKEDITOR.dom.element('div');
-				element.setHtml(htmlString);
-				clearAllSpellCheckingSpans(element);
-				return element.getHtml();
 			}
 
 			function appendCustomStyles(path) {
@@ -763,10 +746,6 @@
 				return suggestionscache[word];
 			}
 
-			function unwrapTypoSpan(span) {
-				span.remove(true);
-			}
-
 			function selectionCollapsed() {
 				if (!editor.getSelection()) {
 					return true;
@@ -820,8 +799,8 @@
 						var retval = (this.status == 'ready');
 
 						if (retval) {
-							var currentData = clearAllSpellCheckingSpansFromString(this.getSnapshot()),
-								prevData = clearAllSpellCheckingSpansFromString(this._.previousValue);
+							var currentData = self.clearAllSpellCheckingSpansFromString(this.getSnapshot()),
+								prevData = self.clearAllSpellCheckingSpansFromString(this._.previousValue);
 
 							retval = (retval && (prevData !== currentData))
 						}
@@ -832,12 +811,29 @@
 
 				editorCheckDirty.resetDirty = CKEDITOR.tools.override(editorCheckDirty.resetDirty, function (org) {
 					return function () {
-						this._.previousValue = clearAllSpellCheckingSpansFromString(this.getSnapshot());
+						this._.previousValue = self.clearAllSpellCheckingSpansFromString(this.getSnapshot());
 					};
 				});
 			}
 
 
+		},
+		unwrapTypoSpan: function(span) {
+			span.remove(true);
+		},
+		clearAllSpellCheckingSpans: function (element) {
+			var spans = element.find('span.nanospell-typo');
+
+			for (var i = 0; i < spans.count(); i++) {
+				var span = spans.getItem(i);
+				this.unwrapTypoSpan(span);
+			}
+		},
+		clearAllSpellCheckingSpansFromString: function (htmlString) {
+			var element = new CKEDITOR.dom.element('div');
+			element.setHtml(htmlString);
+			this.clearAllSpellCheckingSpans(element);
+			return element.getHtml();
 		},
 		addRule: function (editor) {
 			var dataProcessor = editor.dataProcessor,
@@ -966,17 +962,6 @@
 				return;
 			}
 
-			// remove existing contained typo spans (they are partial typos)
-			var iterator = range.createIterator();
-
-			while (existingSpan = iterator.getNextParagraph('span')) {
-				if (existingSpan.hasClass('nanospell-typo')) {
-					bookmark = range.createBookmark();
-					existingSpan.remove(true);
-					range.moveToBookmark(bookmark);
-				}
-			}
-
 			span = editor.document.createElement(
 				'span',
 				{
@@ -989,6 +974,7 @@
 			range.shrink(CKEDITOR.SHRINK_TEXT);
 			var extracted = range.extractContents();
 			extracted.appendTo(span);
+			this.clearAllSpellCheckingSpans(span);
 			range.insertNode(span);
 		},
 		markTypos: function (editor, node) {

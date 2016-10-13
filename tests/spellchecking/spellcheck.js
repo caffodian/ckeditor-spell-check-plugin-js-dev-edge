@@ -34,6 +34,7 @@
 					"bannanas": ["bananas"],
 					"missspelling": ["misspelling"],
 					"qui": ["quote", "quick"],
+					"quic": ["quote", "quick"],
 				}
 			};
 
@@ -503,26 +504,30 @@
 					paragraph.getOuterHtml()
 				);
 
+
+				// set up listener for the span to be removed
+				resumeAfter(editor, 'spellCheckComplete', function() {
+					var paragraph = editor.editable().findOne('p');
+
+					tc.assertHtml(
+						'<p><span class="nanospell-typo">quic</span></p>',
+						paragraph.getOuterHtml()
+					);
+				});
+
 				// type the rest of the word
-				editor.insertHtml('ckly hello');
+				editor.insertHtml('c');
+				editor.editable().fire('keydown', new CKEDITOR.dom.event({
+					keyCode: 32,
+					ctrlKey: false,
+					shiftKey: false
+				}));
 
-				var range = new CKEDITOR.dom.range( editor.editable() );
-				range.selectNodeContents( paragraph );
-				var wordwalker = new editor.plugins.nanospell.WordWalker(range);
-				var currWordObj, word, wordsReturned = [];
-
-				while (currWordObj = wordwalker.getNextWord()) {
-					word = currWordObj.word;
-					wordsReturned.push(word);
-				}
-
-				arrayAssert.itemsAreEqual(['quickly', 'hello'], wordsReturned);
-
+				wait();
 			});
 
 			wait();
 		},
-
 
 	});
 
