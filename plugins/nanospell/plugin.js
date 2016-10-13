@@ -939,10 +939,41 @@
 			}
 			return !this.hasPersonal(word);
 		},
-		wrapWithTypoSpan: function (editor, range) {
-			// TODO first, check if the range actually is a typo span (or just inside a typo span) already
+		rangeIsFullyMarked: function (editor, range) {
+			var startContainer, endContainer;
+			range.optimize();
 
-			var span = editor.document.createElement(
+			startContainer = range.startContainer;
+			endContainer = range.endContainer;
+
+			if (startContainer.type === CKEDITOR.NODE_ELEMENT && startContainer.getName() === 'span' && startContainer.hasClass('nanospell-typo') && startContainer.equals(endContainer)) {
+				return true;
+			}
+			return false;
+		},
+		wrapWithTypoSpan: function (editor, range) {
+			var bookmark;
+			var span;
+			var existingSpan;
+
+			// if the range is entirely a typo span already, we can abort
+
+			if (this.rangeIsFullyMarked(editor, range)) {
+				return;
+			}
+
+			// remove existing contained typo spans (they are partial typos)
+			var iterator = range.createIterator();
+
+			while (existingSpan = iterator.getNextParagraph('span')) {
+				if (existingSpan.hasClass('nanospell-typo')) {
+					bookmark = range.createBookmark();
+					existingSpan.remove(true);
+					range.moveToBookmark(bookmark);
+				}
+			}
+
+			span = editor.document.createElement(
 				'span',
 				{
 					attributes: {
@@ -951,12 +982,8 @@
 				}
 			);
 
-			// TODO remove all partial typo spans within the range
-
-			var textOnlyRange = range.clone();
-
-			textOnlyRange.shrink(CKEDITOR.SHRINK_TEXT);
-			var extracted = textOnlyRange.extractContents();
+			range.shrink(CKEDITOR.SHRINK_TEXT);
+			var extracted = range.extractContents();
 			extracted.appendTo(span);
 			range.insertNode(span);
 		},
