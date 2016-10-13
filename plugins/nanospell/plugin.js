@@ -144,18 +144,6 @@
 			// hex 200b = 8203 = zerowidth space
 			return word.replace(/\u200B/g,'');
 		},
-		rangeIsAlreadyMarked: function (range) {
-			var startContainer, endContainer;
-			range.optimize();
-
-			startContainer = range.startContainer;
-			endContainer = range.endContainer;
-
-			if (startContainer.type === CKEDITOR.NODE_ELEMENT && startContainer.getName() === 'span' && startContainer.hasClass('nanospell-typo') && startContainer.equals(endContainer)) {
-				return true;
-			}
-			return false;
-		},
 		getNextWord: function () {
 			var ww = this;
 
@@ -189,8 +177,8 @@
 						wordRange.setEnd(currentTextNode, i);
 
 						ww.offset = ww.getOffsetToNextNonSeparator(text, i);
-						if (word && !ww.rangeIsAlreadyMarked(wordRange)) {
-							// if you hit a word separator and there is word text
+						if (word) {
+							// if you hit a word separator and there is word text, return it
 							return {word: ww.normalizeWord(word), range: wordRange};
 						}
 						else {
@@ -210,7 +198,7 @@
 			// reached the end of block,
 			// so just return what we've walked
 			// of the current word.
-			if (word && !ww.rangeIsAlreadyMarked(wordRange)) return {word: ww.normalizeWord(word), range: wordRange};
+			if (word) return {word: ww.normalizeWord(word), range: wordRange};
 		}
 	};
 
@@ -955,10 +943,28 @@
 			}
 			return !this.hasPersonal(word);
 		},
+		rangeIsFullyMarked: function (editor, range) {
+			var startContainer, endContainer;
+			range.optimize();
+
+			startContainer = range.startContainer;
+			endContainer = range.endContainer;
+
+			if (startContainer.type === CKEDITOR.NODE_ELEMENT && startContainer.getName() === 'span' && startContainer.hasClass('nanospell-typo') && startContainer.equals(endContainer)) {
+				return true;
+			}
+			return false;
+		},
 		wrapWithTypoSpan: function (editor, range) {
 			var bookmark;
 			var span;
 			var existingSpan;
+
+			// if the range is entirely a typo span already, we can abort
+
+			if (this.rangeIsFullyMarked(editor, range)) {
+				return;
+			}
 
 			// remove existing contained typo spans (they are partial typos)
 			var iterator = range.createIterator();
