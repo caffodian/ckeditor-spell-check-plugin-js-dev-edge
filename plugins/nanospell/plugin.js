@@ -140,6 +140,10 @@
 			return i;
 
 		},
+		normalizeWord: function(word) {
+			// hex 200b = 8203 = zerowidth space
+			return word.replace(/\u200B/g,'');
+		},
 		getNextWord: function () {
 			var ww = this;
 
@@ -175,7 +179,7 @@
 						ww.offset = ww.getOffsetToNextNonSeparator(text, i);
 						if (word) {
 							// if you hit a word separator and there is word text, return it
-							return {word: word, range: wordRange};
+							return {word: ww.normalizeWord(word), range: wordRange};
 						}
 						else {
 							// if the word is blank, set the start of the range to the next
@@ -194,7 +198,7 @@
 			// reached the end of block,
 			// so just return what we've walked
 			// of the current word.
-			if (word) return {word: word, range: wordRange};
+			if (word) return {word: ww.normalizeWord(word), range: wordRange};
 		}
 	};
 
