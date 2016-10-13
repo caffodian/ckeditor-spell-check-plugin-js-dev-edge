@@ -504,7 +504,7 @@
 				);
 
 				// type the rest of the word
-				editor.insertHtml('ckly');
+				editor.insertHtml('ckly hello');
 
 				var range = new CKEDITOR.dom.range( editor.editable() );
 				range.selectNodeContents( paragraph );
@@ -516,7 +516,7 @@
 					wordsReturned.push(word);
 				}
 
-				assert.areEqual(['quickly'], wordsReturned);
+				arrayAssert.itemsAreEqual(['quickly', 'hello'], wordsReturned);
 
 			});
 
