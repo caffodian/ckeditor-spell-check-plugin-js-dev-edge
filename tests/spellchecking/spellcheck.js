@@ -35,6 +35,7 @@
 					"missspelling": ["misspelling"],
 					"qui": ["quote", "quick"],
 					"quic": ["quote", "quick"],
+					'quiasdf': ["quickly"],
 				}
 			};
 
@@ -515,7 +516,8 @@
 					);
 				});
 
-				// type the rest of the word
+				// insert the rest of the word
+				// then force a spellcheck
 				editor.insertHtml('c');
 				editor.editable().fire('keydown', new CKEDITOR.dom.event({
 					keyCode: 32,
@@ -524,6 +526,29 @@
 				}));
 
 				wait();
+			});
+
+			wait();
+		},
+
+		'test it merge two typos into one big typo': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p><span class="nanospell-typo">qui</span>^<span class="nanospell-typo">asdf</span></p>'
+			);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p><span class="nanospell-typo">quiasdf</span></p>',
+					paragraph.getOuterHtml()
+				);
+
 			});
 
 			wait();
