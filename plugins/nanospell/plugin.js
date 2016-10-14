@@ -190,10 +190,15 @@
 					return null;
 				}
 
+
+				// update stuff for next iteration
+
 				selectionNode = selectionRange.startContainer;
 				selectionOffset = selectionRange.startOffset;
 
 				if (selectionNode.type !== CKEDITOR.NODE_TEXT) {
+					// Text nodes don't have children, but if it's a text node,
+					// we won't actually have a next iteration anyway.
 					selectionChildren = selectionNode.getChildren();
 				}
 			}
@@ -205,6 +210,7 @@
 				};
 			}
 			else {
+				// we somehow managed to exhaust all possible nodes without finding a text node
 				return null;
 			}
 		},
