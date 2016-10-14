@@ -168,20 +168,25 @@
 			}
 
 			while (selectionNode.type !== CKEDITOR.NODE_TEXT && selectionChildren.count() !== 0) {
-				// is at the start
 				if (selectionOffset === 0) {
+					// is at the start of an element, attempt to move into its first child, at the start
+					// either the child will be a text node (yay) or another element which may or may not contain a text node
 					selectionRange.moveToPosition(selectionChildren.getItem(0), CKEDITOR.POSITION_AFTER_START)
 				}
 				else if (selectionOffset >= selectionChildren.count()) {
+					// selection is past the end element, attempt to move into its last child, at the end
 					selectionRange.moveToPosition(selectionChildren.getItem(selectionChildren.count()-1), CKEDITOR.POSITION_BEFORE_END)
 				}
 				else {
+					// selection is somewhere in between children of the container
+					// move into the child that follows the selection and place the cursor at the start
 					selectionRange.moveToPosition(selectionChildren.getItem(selectionOffset), CKEDITOR.POSITION_AFTER_START)
 				}
 
 				if (selectionNode.equals(selectionRange.startContainer) && selectionOffset === selectionRange.startOffset) {
-					// we hit a crazy case (usually breaks or other empty elements in between)
-					// where the selection doesn't actually move
+					// We hit a crazy case (usually breaks or other non-text containing elements in between)
+					// where the selection doesn't actually move.
+					// We are unable to traverse any further, so abort.
 					return null;
 				}
 
