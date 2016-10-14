@@ -15,7 +15,8 @@
 			ignore: {
 				'test it can spellcheck a word that uses multiple formatting tags': true,
 				'test it can spellcheck a word that spans an inline closing tag': true,
-				'test it can spellcheck a word that spans an inline opening tag': true
+				'test it can spellcheck a word that spans an inline opening tag': true,
+				'test it can spellcheck a word with a typoed prefix into being correct': true,
 			}
 		},
 		assertHtml: function (expected, actual, msg) {
@@ -483,7 +484,7 @@
 			wait();
 		},
 
-		'test it can spellcheck an already spellchecked word into correctness': function () {
+		'test it can spellcheck a word with a typoed prefix into being incorrect': function () {
 			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
@@ -491,22 +492,23 @@
 
 			bot.setHtmlWithSelection(
 				'<p>' +
-				'qui^' +
+				'<span class="nanospell-typo">qui</span>^' + // just cheat and mark it from the beginning.
 				'</p>'
 			);
+
 
 			resumeAfter(editor, 'spellCheckComplete', function () {
 				var paragraph = editor.editable().findOne('p');
 
 				tc.assertHtml(
 					'<p>' +
-					'<span class="nanospell-typo">qui</span>' +
+					'<span class="nanospell-typo">qui</span> ' +
 					'</p>',
 					paragraph.getOuterHtml()
 				);
 
 
-				// set up listener for the span to be removed
+				// set up listener for the new typo span
 				resumeAfter(editor, 'spellCheckComplete', function() {
 					var paragraph = editor.editable().findOne('p');
 
@@ -517,8 +519,64 @@
 				});
 
 				// insert the rest of the word
-				// then force a spellcheck
+
 				editor.insertHtml('c');
+
+				// then force a spellcheck with space
+				editor.editable().fire('keydown', new CKEDITOR.dom.event({
+					keyCode: 32,
+					ctrlKey: false,
+					shiftKey: false
+				}));
+
+				wait();
+			});
+
+			wait();
+		},
+
+		'test it can spellcheck a word with a typoed prefix into being correct': function () {
+			// THIS TEST IS SKIPPED
+			// It doesn't work properly because we only clear spans on typing and yet
+			// inserting html via sending key events in the test is a giant pain.
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter;
+
+			bot.setHtmlWithSelection(
+				'<p>' +
+				'<span class="nanospell-typo">qui</span>^' + // just cheat and mark it from the beginning.
+				'</p>'
+			);
+
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+
+				tc.assertHtml(
+					'<p>' +
+					'<span class="nanospell-typo">qui</span> ' +
+					'</p>',
+					paragraph.getOuterHtml()
+				);
+
+
+				// set up listener for the span to be removed
+				resumeAfter(editor, 'spellCheckComplete', function() {
+					var paragraph = editor.editable().findOne('p');
+
+					tc.assertHtml(
+						'<p>quick </p>',
+						paragraph.getOuterHtml()
+					);
+				});
+
+				// insert the rest of the word
+
+				editor.insertHtml('ck');
+
+				// then force a spellcheck with space
 				editor.editable().fire('keydown', new CKEDITOR.dom.event({
 					keyCode: 32,
 					ctrlKey: false,
