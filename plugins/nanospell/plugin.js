@@ -145,6 +145,46 @@
 			// hex 200b = 8203 = zerowidth space
 			return word.replace(/\u200B/g, '');
 		},
+		getTextNodePositionFromSelection: function(selection) {
+			var selectionRange = selection.getRanges()[0],
+				selectionNode = selectionRange.startContainer,
+				selectionOffset = selectionRange.startOffset,
+				selectionChildren = selectionNode.getChildren ? selectionNode.getChildren() : null;
+
+			if (!selectionRange.collapsed) {
+				return null;
+			}
+
+			while (selectionNode.type !== CKEDITOR.NODE_TEXT && selectionChildren.count() !== 0) {
+				// is at the start
+				if (selectionOffset === 0) {
+					selectionRange.moveToPosition(selectionChildren.getItem(0), CKEDITOR.POSITION_AFTER_START)
+				}
+				else if (selectionOffset >= selectionChildren.count()) {
+					selectionRange.moveToPosition(selectionChildren.getItem(selectionChildren.count()-1), CKEDITOR.POSITION_BEFORE_END)
+				}
+				else {
+					selectionRange.moveToPosition(selectionChildren.getItem(selectionOffset), CKEDITOR.POSITION_AFTER_START)
+				}
+
+				selectionNode = selectionRange.startContainer;
+				selectionOffset = selectionRange.startOffset;
+
+				if (selectionNode.type !== CKEDITOR.NODE_TEXT) {
+					selectionChildren = selectionNode.getChildren();
+				}
+			}
+
+			if (selectionNode.type === CKEDITOR.NODE_TEXT) {
+				return {
+					node: selectionNode,
+					offset: selectionOffset
+				};
+			}
+			else {
+				return null;
+			}
+		},
 		getNextWord: function () {
 			var ww = this;
 
@@ -157,22 +197,15 @@
 			var wordRange = ww.origRange.clone();
 			var i;
 			var text;
-			var selectionRange = ww.editor.getSelection().getRanges()[0];
+			var selection = ww.editor.getSelection();
 			var selectionNode, selectionOffset;
 			var isSelectedWord = false;
 
 
-			if (selectionRange.collapsed) {
-				if (selectionRange.startContainer.type === CKEDITOR.NODE_TEXT) {
-					selectionNode = selectionRange.startContainer;
-					selectionOffset = selectionRange.startOffset;
-				}
-				else {
-					// 3 cases to fix:
-					// selection is at the very start of a block
-					// selection is in between two children of a block
-					// selection is at the very end of a block
-				}
+			if (selection) {
+				var selectionMarker = ww.getTextNodePositionFromSelection(selection);
+				selectionNode = selectionMarker.node;
+				selectionOffset = selectionMarker.offset;
 			}
 
 			if (currentTextNode === null) {
