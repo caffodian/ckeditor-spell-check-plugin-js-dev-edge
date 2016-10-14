@@ -593,13 +593,27 @@
 				}
 
 				var elementPath = new CKEDITOR.dom.elementPath(target);
+				var selection = editor.getSelection();
+				var range = selection.getRanges()[0];
 
 				//if! user is typing on a typo remove its underline
 
 				var spellCheckSpan = elementPath.contains(isSpellCheckSpan);
 
-				if (spellCheckSpan) {
+				if (!spellCheckSpan) {
+					// if we are not directly inside a span, we can still be touching the edge
+					if (isSpellCheckSpan(range.getTouchedStartNode())) {
+						spellCheckSpan = range.getTouchedStartNode();
+					}
+					else if (isSpellCheckSpan(range.getTouchedEndNode())) {
+						spellCheckSpan = range.getTouchedEndNode();
+					}
+				} else {
+					// somehow our spellcheck block was a span, so we need to get the parent instead.
 					target = findNearestParentBlock(target);
+				}
+
+				if (spellCheckSpan) {
 					var bookmarks = editor.getSelection().createBookmarks(true);
 					self.unwrapTypoSpan(spellCheckSpan);
 					editor.getSelection().selectBookmarks(bookmarks);
@@ -621,7 +635,7 @@
 			}
 
 			function isSpellCheckSpan(node) {
-				return node.getName() === 'span' && node.hasClass('nanospell-typo');
+				return node.type === CKEDITOR.NODE_ELEMENT && node.getName() === 'span' && node.hasClass('nanospell-typo');
 			}
 
 			function checkWords(event) {
