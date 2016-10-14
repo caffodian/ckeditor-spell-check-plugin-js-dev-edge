@@ -163,7 +163,6 @@
 
 
 			if (selectionRange.collapsed) {
-				selectionRange.shrink(CKEDITOR.SHRINK_TEXT);
 				if (selectionRange.startContainer.type === CKEDITOR.NODE_TEXT) {
 					selectionNode = selectionRange.startContainer;
 					selectionOffset = selectionRange.startOffset;
