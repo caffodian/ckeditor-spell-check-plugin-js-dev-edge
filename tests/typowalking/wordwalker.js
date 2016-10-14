@@ -363,6 +363,26 @@ bender.test( {
 		arrayAssert.itemsAreEqual(["lorem", "alor"], wordsReturned);
 		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
+	'test walker does not infinitely loop on breaks in paragraph': function() {
+		var bot = this.editorBot,
+			paragraphWithTags,
+			wordObjectsReturned,
+			rangesReturned,
+			wordsReturned;
+
+		bot.setHtmlWithSelection(
+			"<p>^<br/>foo</p>"
+		);
+
+		paragraphWithTags = this.editor.editable().getFirst();
+
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithTags);
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
+		wordsReturned = wordObjectsReturned.words;
+
+		arrayAssert.itemsAreEqual(["foo"], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
+	},
 
 
 } );
