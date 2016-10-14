@@ -54,7 +54,7 @@
 		return word.replace(/[\u2018\u2019]/g, "'");
 	}
 
-	function WordWalker(range) {
+	function WordWalker(editor, range) {
 		// the WordWalker takes a range encompassing a block element
 		// (for example, p, li, td)
 		// and provides a mechanism for iterating over each word within,
@@ -123,6 +123,7 @@
 		ww.textNode = ww.rootBlockTextNodeWalker.next();
 		ww.offset = 0;
 		ww.origRange = range;
+		ww.editor = editor;
 	}
 
 	WordWalker.prototype = {
@@ -156,6 +157,24 @@
 			var wordRange = ww.origRange.clone();
 			var i;
 			var text;
+			var selectionRange = ww.editor.getSelection().getRanges()[0];
+			var selectionNode, selectionOffset;
+			var isSelectedWord = false;
+
+
+			if (selectionRange.collapsed) {
+				selectionRange.shrink(CKEDITOR.SHRINK_TEXT);
+				if (selectionRange.startContainer.type === CKEDITOR.NODE_TEXT) {
+					selectionNode = selectionRange.startContainer;
+					selectionOffset = selectionRange.startOffset;
+				}
+				else {
+					// 3 cases to fix:
+					// selection is at the very start of a block
+					// selection is in between two children of a block
+					// selection is at the very end of a block
+				}
+			}
 
 			if (currentTextNode === null) {
 				return null;
@@ -177,7 +196,7 @@
 						wordRange.setEnd(currentTextNode, i);
 
 						ww.offset = ww.getOffsetToNextNonSeparator(text, i);
-						if (word) {
+						if (word && !isSelectedWord) {
 							// if you hit a word separator and there is word text, return it
 							return {word: ww.normalizeWord(word), range: wordRange};
 						}
@@ -185,7 +204,14 @@
 							// if the word is blank, set the start of the range to the next
 							// non-separator text
 							wordRange.setStart(currentTextNode, ww.offset);
+
+							// new word
+							isSelectedWord = false;
+							word = '';
 						}
+					}
+					else if (currentTextNode.equals(selectionNode) && selectionOffset === i) {
+						isSelectedWord = true;
 					}
 				}
 				word += text.substr(ww.offset);
@@ -198,7 +224,7 @@
 			// reached the end of block,
 			// so just return what we've walked
 			// of the current word.
-			if (word) return {word: ww.normalizeWord(word), range: wordRange};
+			if (word && !isSelectedWord) return {word: ww.normalizeWord(word), range: wordRange};
 		}
 	};
 
@@ -704,7 +730,7 @@
 					word;
 
 				range.selectNodeContents(block);
-				var wordwalker = new self.WordWalker(range);
+				var wordwalker = new self.WordWalker(editor, range);
 
 				while (currentWordObj = wordwalker.getNextWord()) {
 					word = currentWordObj.word;
@@ -984,7 +1010,7 @@
 		},
 		markTyposInRange: function (editor, range) {
 			var match;
-			var wordwalker = new this.WordWalker(range);
+			var wordwalker = new this.WordWalker(editor, range);
 			var badRanges = [];
 			var matchtext;
 

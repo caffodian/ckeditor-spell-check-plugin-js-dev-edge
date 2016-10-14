@@ -28,7 +28,7 @@ bender.test( {
 		// assume there is only one block level element.
 		range.selectNodeContents( root );
 
-		wordwalker = new editor.plugins.nanospell.WordWalker(range);
+		wordwalker = new editor.plugins.nanospell.WordWalker(editor, range);
 
 		while (currWordObj = wordwalker.getNextWord()) {
 			word = currWordObj.word;
@@ -178,7 +178,7 @@ bender.test( {
 						'<li>bar baz</li>' +
 					'</ol>' +
 				'</li>' +
-			'</ul>' );
+			'</ul> ^' );
 
 		wordObjectsReturned = this.getWordObjectsWithWordWalker(this.editor.editable().getFirst().getFirst() );
 		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
@@ -291,7 +291,7 @@ bender.test( {
 			wordsReturned;
 
 		bot.setHtmlWithSelection(
-			"<p>couldn't shouldn't wouldn't dunno'grammar</p>"
+			"<p>couldn't shouldn't wouldn't dunno'grammar ^</p>"
 		);
 
 		paragraphWithTags = this.editor.editable().getFirst();
@@ -303,5 +303,66 @@ bender.test( {
 		arrayAssert.itemsAreEqual(["couldn't", "shouldn't", "wouldn't", "dunno'grammar"], wordsReturned);
 		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
+	'test walker ignores current selected word when caret at end': function() {
+		var bot = this.editorBot,
+			paragraphWithTags,
+			wordObjectsReturned,
+			rangesReturned,
+			wordsReturned;
+
+		bot.setHtmlWithSelection(
+			"<p>lorem ipsum alor^</p>"
+		);
+
+		paragraphWithTags = this.editor.editable().getFirst();
+
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithTags);
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
+		wordsReturned = wordObjectsReturned.words;
+
+		arrayAssert.itemsAreEqual(["lorem", "ipsum"], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
+	},
+	'test walker ignores current selected word when caret at start': function() {
+		var bot = this.editorBot,
+			paragraphWithTags,
+			wordObjectsReturned,
+			rangesReturned,
+			wordsReturned;
+
+		bot.setHtmlWithSelection(
+			"<p>^lorem ipsum alor</p>"
+		);
+
+		paragraphWithTags = this.editor.editable().getFirst();
+
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithTags);
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
+		wordsReturned = wordObjectsReturned.words;
+
+		arrayAssert.itemsAreEqual(["ipsum", "alor"], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
+	},
+	'test walker ignores current selected word when caret in between two text nodes': function() {
+		var bot = this.editorBot,
+			paragraphWithTags,
+			wordObjectsReturned,
+			rangesReturned,
+			wordsReturned;
+
+		bot.setHtmlWithSelection(
+			"<p>lorem ips^um alor</p>"
+		);
+
+		paragraphWithTags = this.editor.editable().getFirst();
+
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithTags);
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
+		wordsReturned = wordObjectsReturned.words;
+
+		arrayAssert.itemsAreEqual(["lorem", "alor"], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
+	},
+
 
 } );
