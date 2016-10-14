@@ -151,8 +151,8 @@
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
 				observer = observeSpellCheckEvents(editor),
-				fiveBlockHtml = '<p>This</p><p>is</p><ul><li>five</li><li>block</li></ul><p>test</p>',
-				sixBlockHtml = '<p>This</p><p>is</p><p>a</p><ul><li>six</li><li>block</li></ul><p>one</p>';
+				fiveBlockHtml = '<p>This</p><p>is</p><ul><li>five</li><li>block</li></ul><p>test</p> ^',
+				sixBlockHtml = '<p>This</p><p>is</p><p>a</p><ul><li>six</li><li>block</li></ul><p>one</p> ^';
 
 				bot.setHtmlWithSelection(fiveBlockHtml);
 

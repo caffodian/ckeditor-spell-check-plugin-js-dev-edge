@@ -119,7 +119,7 @@
 			bot.setHtmlWithSelection(
 				'<ol>' +
 				'<li>appkes</li>' +
-				'</ol>'
+				'</ol> ^'
 			);
 
 			resumeAfter(editor, 'spellCheckComplete', function () {
@@ -148,7 +148,7 @@
 				'<li>pearrs</li>' +
 				'</ol>' +
 				'</li>' +
-				'</ul>'
+				'</ul> ^'
 			);
 
 			resumeAfter(editor, 'spellCheckComplete', function () {
