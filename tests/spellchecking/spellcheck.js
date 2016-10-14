@@ -492,7 +492,7 @@
 
 			bot.setHtmlWithSelection(
 				'<p>' +
-				'<span class="nanospell-typo">qui</span>^' + // just cheat and mark it from the beginning.
+				'<span class="nanospell-typo">qui^</span>' + // just cheat and mark it from the beginning.
 				'</p>'
 			);
 
