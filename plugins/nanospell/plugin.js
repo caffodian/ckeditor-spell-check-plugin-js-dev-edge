@@ -146,10 +146,22 @@
 			return word.replace(/\u200B/g, '');
 		},
 		getTextNodePositionFromSelection: function(selection) {
-			var selectionRange = selection.getRanges()[0],
-				selectionNode = selectionRange.startContainer,
-				selectionOffset = selectionRange.startOffset,
-				selectionChildren = selectionNode.getChildren ? selectionNode.getChildren() : null;
+			var ranges = selection.getRanges(),
+				selectionRange,
+				selectionNode,
+				selectionOffset,
+				selectionChildren;
+
+			// sometimes you can have a selection
+			// which has no ranges...?!
+			if (ranges.length === 0) {
+				return null;
+			}
+
+			selectionRange = selection.getRanges()[0];
+			selectionNode = selectionRange.startContainer;
+			selectionOffset = selectionRange.startOffset;
+			selectionChildren = selectionNode.getChildren ? selectionNode.getChildren() : null;
 
 			if (!selectionRange.collapsed) {
 				return null;
@@ -204,8 +216,10 @@
 
 			if (selection) {
 				var selectionMarker = ww.getTextNodePositionFromSelection(selection);
-				selectionNode = selectionMarker.node;
-				selectionOffset = selectionMarker.offset;
+				if (selectionMarker) {
+					selectionNode = selectionMarker.node;
+					selectionOffset = selectionMarker.offset;
+				}
 			}
 
 			if (currentTextNode === null) {
@@ -246,6 +260,14 @@
 						isSelectedWord = true;
 					}
 				}
+				// catch case where the caret was touching the back of the text node
+				// normally this should only be at the very end of the block
+				// since we prefer to put the caret at the start of text nodes
+				// but things can be weird.
+				if (currentTextNode.equals(selectionNode) && selectionOffset === i) {
+					isSelectedWord = true;
+				}
+
 				word += text.substr(ww.offset);
 				ww.offset = 0;
 				wordRange.setEnd(currentTextNode, i);

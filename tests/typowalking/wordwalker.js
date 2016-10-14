@@ -14,7 +14,7 @@ bender.test( {
 		this.editor = this.editorBot.editor;
 	},
 	getWordObjectsWithWordWalker: function(root) {
-		var editor = this.editorBot.editor,
+		var editor = this.editor,
 			range,
 			wordwalker,
 			wordsReturned = {
@@ -24,7 +24,7 @@ bender.test( {
 			currWordObj,
 			word;
 
-		range = new CKEDITOR.dom.range( editor.document );
+		range = editor.createRange();
 		// assume there is only one block level element.
 		range.selectNodeContents( root );
 
@@ -50,7 +50,7 @@ bender.test( {
 			wordObjectsReturned,
 			rangesReturned,
 			wordsReturned;
-		bot.setHtmlWithSelection( '<p>foo bar baz</p>' );
+		bot.setHtmlWithSelection( '<p>foo bar baz</p> ^' );
 
 		wordObjectsReturned = this.getWordObjectsWithWordWalker(this.editor.editable().getFirst() );
 		wordsReturned = wordObjectsReturned.words;
@@ -66,7 +66,7 @@ bender.test( {
 			rangesReturned,
 			wordsReturned;
 
-		bot.setHtmlWithSelection( '<p>f<i>o</i>o <strong>b</strong>ar <em>baz</em></p>' );
+		bot.setHtmlWithSelection( '<p>f<i>o</i>o <strong>b</strong>ar <em>baz</em></p> ^' );
 
 		wordObjectsReturned = this.getWordObjectsWithWordWalker(this.editor.editable().getFirst() );
 		wordsReturned = wordObjectsReturned.words;
@@ -84,7 +84,7 @@ bender.test( {
 		bot.setHtmlWithSelection(
 			'<ol>' +
 				'<li>foo bar baz</li>' +
-			'</ol>'
+			'</ol> ^'
 		);
 
 		wordObjectsReturned = this.getWordObjectsWithWordWalker(this.editor.editable().getFirst().getFirst() );
@@ -106,7 +106,7 @@ bender.test( {
 				'<li>foo bar</li>' +
 				'<li>bar baz</li>' +
 				'<li>baz foo</li>' +
-			'</ol>'
+			'</ol> ^'
 		);
 
 		list = this.editor.editable().getFirst();
@@ -140,7 +140,7 @@ bender.test( {
 						'<li>foo bar baz</li>' +
 					'</ol>' +
 				'</li>' +
-			'</ul>'
+			'</ul> ^'
 		);
 
 		outerUnorderedList = this.editor.editable().getFirst();
@@ -205,7 +205,7 @@ bender.test( {
 						'<li>bar</li>' +
 					'</ol>' +
 				'baz</li>' +
-			'</ul>'
+			'</ul> ^'
 		);
 
 		outerUnorderedList = this.editor.editable().getFirst();
@@ -251,7 +251,7 @@ bender.test( {
 						'</tr>' +
 					'</tbody>' +
 				'</table>' +
-			'</li></ul>'
+			'</li></ul> ^'
 		);
 
 		outerUnorderedList = this.editor.editable().getFirst();
@@ -271,7 +271,7 @@ bender.test( {
 			wordsReturned;
 
 		bot.setHtmlWithSelection(
-			'<p>paragraph<br/>break<sup>superscript</sup> paragraph<sub>subscript</sub></p>'
+			'<p>paragraph<br/>break<sup>superscript</sup> paragraph<sub>subscript</sub> ^</p>'
 		);
 
 		paragraphWithTags = this.editor.editable().getFirst();
