@@ -179,6 +179,12 @@
 					selectionRange.moveToPosition(selectionChildren.getItem(selectionOffset), CKEDITOR.POSITION_AFTER_START)
 				}
 
+				if (selectionNode.equals(selectionRange.startContainer) && selectionOffset === selectionRange.startOffset) {
+					// we hit a crazy case (usually breaks or other empty elements in between)
+					// where the selection doesn't actually move
+					return null;
+				}
+
 				selectionNode = selectionRange.startContainer;
 				selectionOffset = selectionRange.startOffset;
 
