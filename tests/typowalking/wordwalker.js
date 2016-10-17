@@ -14,7 +14,7 @@ bender.test( {
 		this.editor = this.editorBot.editor;
 	},
 	getWordObjectsWithWordWalker: function(root) {
-		var editor = this.editorBot.editor,
+		var editor = this.editor,
 			range,
 			wordwalker,
 			wordsReturned = {
@@ -24,11 +24,11 @@ bender.test( {
 			currWordObj,
 			word;
 
-		range = new CKEDITOR.dom.range( editor.document );
+		range = editor.createRange();
 		// assume there is only one block level element.
 		range.selectNodeContents( root );
 
-		wordwalker = new editor.plugins.nanospell.WordWalker(range);
+		wordwalker = new editor.plugins.nanospell.WordWalker(editor, range);
 
 		while (currWordObj = wordwalker.getNextWord()) {
 			word = currWordObj.word;
@@ -50,7 +50,7 @@ bender.test( {
 			wordObjectsReturned,
 			rangesReturned,
 			wordsReturned;
-		bot.setHtmlWithSelection( '<p>foo bar baz</p>' );
+		bot.setHtmlWithSelection( '<p>foo bar baz</p> ^' );
 
 		wordObjectsReturned = this.getWordObjectsWithWordWalker(this.editor.editable().getFirst() );
 		wordsReturned = wordObjectsReturned.words;
@@ -66,7 +66,7 @@ bender.test( {
 			rangesReturned,
 			wordsReturned;
 
-		bot.setHtmlWithSelection( '<p>f<i>o</i>o <strong>b</strong>ar <em>baz</em></p>' );
+		bot.setHtmlWithSelection( '<p>f<i>o</i>o <strong>b</strong>ar <em>baz</em></p> ^' );
 
 		wordObjectsReturned = this.getWordObjectsWithWordWalker(this.editor.editable().getFirst() );
 		wordsReturned = wordObjectsReturned.words;
@@ -84,7 +84,7 @@ bender.test( {
 		bot.setHtmlWithSelection(
 			'<ol>' +
 				'<li>foo bar baz</li>' +
-			'</ol>'
+			'</ol> ^'
 		);
 
 		wordObjectsReturned = this.getWordObjectsWithWordWalker(this.editor.editable().getFirst().getFirst() );
@@ -106,7 +106,7 @@ bender.test( {
 				'<li>foo bar</li>' +
 				'<li>bar baz</li>' +
 				'<li>baz foo</li>' +
-			'</ol>'
+			'</ol> ^'
 		);
 
 		list = this.editor.editable().getFirst();
@@ -140,7 +140,7 @@ bender.test( {
 						'<li>foo bar baz</li>' +
 					'</ol>' +
 				'</li>' +
-			'</ul>'
+			'</ul> ^'
 		);
 
 		outerUnorderedList = this.editor.editable().getFirst();
@@ -178,7 +178,7 @@ bender.test( {
 						'<li>bar baz</li>' +
 					'</ol>' +
 				'</li>' +
-			'</ul>' );
+			'</ul> ^' );
 
 		wordObjectsReturned = this.getWordObjectsWithWordWalker(this.editor.editable().getFirst().getFirst() );
 		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
@@ -205,7 +205,7 @@ bender.test( {
 						'<li>bar</li>' +
 					'</ol>' +
 				'baz</li>' +
-			'</ul>'
+			'</ul> ^'
 		);
 
 		outerUnorderedList = this.editor.editable().getFirst();
@@ -251,7 +251,7 @@ bender.test( {
 						'</tr>' +
 					'</tbody>' +
 				'</table>' +
-			'</li></ul>'
+			'</li></ul> ^'
 		);
 
 		outerUnorderedList = this.editor.editable().getFirst();
@@ -263,28 +263,6 @@ bender.test( {
 		arrayAssert.itemsAreEqual(['asdf'], wordsReturned);
 		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
-
-	'test it ignores spellcheck spans': function() {
-		var bot = this.editorBot,
-			wordObjectsReturned,
-			rangesReturned,
-			wordsReturned,
-			paragraphWithSpellCheckSpans;
-
-		bot.setHtmlWithSelection(
-			'<p>This paragraph has a <span class="nanospell-typo">missspelling</span> in it</p>'
-		);
-
-		paragraphWithSpellCheckSpans = this.editor.editable().getFirst();
-
-		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithSpellCheckSpans);
-		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
-		wordsReturned = wordObjectsReturned.words;
-
-		arrayAssert.itemsAreEqual(['This', 'paragraph', 'has', 'a', 'in', 'it'], wordsReturned);
-		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
-	},
-
 	'test walking paragraph with breaks and subscripts and superscripts': function() {
 		var bot = this.editorBot,
 			paragraphWithTags,
@@ -293,7 +271,7 @@ bender.test( {
 			wordsReturned;
 
 		bot.setHtmlWithSelection(
-			'<p>paragraph<br/>break<sup>superscript</sup> paragraph<sub>subscript</sub></p>'
+			'<p>paragraph<br/>break<sup>superscript</sup> paragraph<sub>subscript</sub> ^</p>'
 		);
 
 		paragraphWithTags = this.editor.editable().getFirst();
@@ -305,7 +283,6 @@ bender.test( {
 		arrayAssert.itemsAreEqual(['paragraph', 'break', 'superscript', 'paragraph', 'subscript'], wordsReturned);
 		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
-
 	'test walking contractions': function() {
 		var bot = this.editorBot,
 			paragraphWithTags,
@@ -314,7 +291,7 @@ bender.test( {
 			wordsReturned;
 
 		bot.setHtmlWithSelection(
-			"<p>couldn't shouldn't wouldn't dunno'grammar</p>"
+			"<p>couldn't shouldn't wouldn't dunno'grammar ^</p>"
 		);
 
 		paragraphWithTags = this.editor.editable().getFirst();
@@ -326,5 +303,86 @@ bender.test( {
 		arrayAssert.itemsAreEqual(["couldn't", "shouldn't", "wouldn't", "dunno'grammar"], wordsReturned);
 		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
+	'test walker ignores current selected word when caret at end': function() {
+		var bot = this.editorBot,
+			paragraphWithTags,
+			wordObjectsReturned,
+			rangesReturned,
+			wordsReturned;
+
+		bot.setHtmlWithSelection(
+			"<p>lorem ipsum alor^</p>"
+		);
+
+		paragraphWithTags = this.editor.editable().getFirst();
+
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithTags);
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
+		wordsReturned = wordObjectsReturned.words;
+
+		arrayAssert.itemsAreEqual(["lorem", "ipsum"], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
+	},
+	'test walker ignores current selected word when caret at start': function() {
+		var bot = this.editorBot,
+			paragraphWithTags,
+			wordObjectsReturned,
+			rangesReturned,
+			wordsReturned;
+
+		bot.setHtmlWithSelection(
+			"<p>^lorem ipsum alor</p>"
+		);
+
+		paragraphWithTags = this.editor.editable().getFirst();
+
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithTags);
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
+		wordsReturned = wordObjectsReturned.words;
+
+		arrayAssert.itemsAreEqual(["ipsum", "alor"], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
+	},
+	'test walker ignores current selected word when caret in between two text nodes': function() {
+		var bot = this.editorBot,
+			paragraphWithTags,
+			wordObjectsReturned,
+			rangesReturned,
+			wordsReturned;
+
+		bot.setHtmlWithSelection(
+			"<p>lorem ips^um alor</p>"
+		);
+
+		paragraphWithTags = this.editor.editable().getFirst();
+
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithTags);
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
+		wordsReturned = wordObjectsReturned.words;
+
+		arrayAssert.itemsAreEqual(["lorem", "alor"], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
+	},
+	'test walker does not infinitely loop on breaks in paragraph': function() {
+		var bot = this.editorBot,
+			paragraphWithTags,
+			wordObjectsReturned,
+			rangesReturned,
+			wordsReturned;
+
+		bot.setHtmlWithSelection(
+			"<p>^<br/>foo</p>"
+		);
+
+		paragraphWithTags = this.editor.editable().getFirst();
+
+		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithTags);
+		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
+		wordsReturned = wordObjectsReturned.words;
+
+		arrayAssert.itemsAreEqual(["foo"], wordsReturned);
+		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
+	},
+
 
 } );

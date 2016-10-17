@@ -54,7 +54,7 @@
 		return word.replace(/[\u2018\u2019]/g, "'");
 	}
 
-	function WordWalker(range) {
+	function WordWalker(editor, range) {
 		// the WordWalker takes a range encompassing a block element
 		// (for example, p, li, td)
 		// and provides a mechanism for iterating over each word within,
@@ -77,10 +77,7 @@
 				block = path.block,
 				blockIsStartNode = block && block.equals(startNode),
 				blockLimit = path.blockLimit,
-				blockLimitIsStartNode = blockLimit && blockLimit.equals(startNode),
-				isInSpellCheckSpan = path.contains(function (el) {
-					return el.getName() === 'span' && el.hasClass('nanospell-typo');
-				})
+				blockLimitIsStartNode = blockLimit && blockLimit.equals(startNode);
 
 			// tables and list items can get a bit weird with getNextParagraph()
 			// for example causing list item descendants to be included as part of the original list item
@@ -91,7 +88,6 @@
 				node.getLength() > 0 &&  // and it's not empty
 				( !node.isReadOnly() ) &&   // or read only
 				isNotBookmark(node) && // and isn't a fake bookmarking node
-				!isInSpellCheckSpan && // it isn't in a spellcheck span
 				(blockLimit ? blockLimitIsStartNode : true) && // check we don't enter another block-like element
 				(block ? blockIsStartNode : true); // check we don't enter nested blocks (special list case since it's not considered a limit)
 
@@ -127,6 +123,7 @@
 		ww.textNode = ww.rootBlockTextNodeWalker.next();
 		ww.offset = 0;
 		ww.origRange = range;
+		ww.editor = editor;
 	}
 
 	WordWalker.prototype = {
@@ -144,6 +141,79 @@
 			return i;
 
 		},
+		normalizeWord: function (word) {
+			// hex 200b = 8203 = zerowidth space
+			return word.replace(/\u200B/g, '');
+		},
+		getTextNodePositionFromSelection: function(selection) {
+			var ranges = selection.getRanges(),
+				selectionRange,
+				selectionNode,
+				selectionOffset,
+				selectionChildren;
+
+			// sometimes you can have a selection
+			// which has no ranges...?!
+			if (ranges.length === 0) {
+				return null;
+			}
+
+			selectionRange = selection.getRanges()[0];
+			selectionNode = selectionRange.startContainer;
+			selectionOffset = selectionRange.startOffset;
+			selectionChildren = selectionNode.getChildren ? selectionNode.getChildren() : null;
+
+			if (!selectionRange.collapsed) {
+				return null;
+			}
+
+			while (selectionNode.type !== CKEDITOR.NODE_TEXT && selectionChildren.count() !== 0) {
+				if (selectionOffset === 0) {
+					// is at the start of an element, attempt to move into its first child, at the start
+					// either the child will be a text node (yay) or another element which may or may not contain a text node
+					selectionRange.moveToPosition(selectionChildren.getItem(0), CKEDITOR.POSITION_AFTER_START)
+				}
+				else if (selectionOffset >= selectionChildren.count()) {
+					// selection is past the end element, attempt to move into its last child, at the end
+					selectionRange.moveToPosition(selectionChildren.getItem(selectionChildren.count()-1), CKEDITOR.POSITION_BEFORE_END)
+				}
+				else {
+					// selection is somewhere in between children of the container
+					// move into the child that follows the selection and place the cursor at the start
+					selectionRange.moveToPosition(selectionChildren.getItem(selectionOffset), CKEDITOR.POSITION_AFTER_START)
+				}
+
+				if (selectionNode.equals(selectionRange.startContainer) && selectionOffset === selectionRange.startOffset) {
+					// We hit a crazy case (usually breaks or other non-text containing elements in between)
+					// where the selection doesn't actually move.
+					// We are unable to traverse any further, so abort.
+					return null;
+				}
+
+
+				// update stuff for next iteration
+
+				selectionNode = selectionRange.startContainer;
+				selectionOffset = selectionRange.startOffset;
+
+				if (selectionNode.type === CKEDITOR.NODE_ELEMENT) {
+					// Text nodes don't have children, but if it's a text node,
+					// we won't actually have a next iteration anyway.
+					selectionChildren = selectionNode.getChildren();
+				}
+			}
+
+			if (selectionNode.type === CKEDITOR.NODE_TEXT) {
+				return {
+					node: selectionNode,
+					offset: selectionOffset
+				};
+			}
+			else {
+				// we somehow managed to exhaust all possible nodes without finding a text node
+				return null;
+			}
+		},
 		getNextWord: function () {
 			var ww = this;
 
@@ -156,6 +226,18 @@
 			var wordRange = ww.origRange.clone();
 			var i;
 			var text;
+			var selection = ww.editor.getSelection();
+			var selectionNode, selectionOffset;
+			var isSelectedWord = false;
+
+
+			if (selection) {
+				var selectionMarker = ww.getTextNodePositionFromSelection(selection);
+				if (selectionMarker) {
+					selectionNode = selectionMarker.node;
+					selectionOffset = selectionMarker.offset;
+				}
+			}
 
 			if (currentTextNode === null) {
 				return null;
@@ -168,7 +250,7 @@
 				// text nodes but we traversed an element that should cause a word break
 				if (text && i === text.length && ww.hitWordBreak) {
 					ww.hitWordBreak = false;
-					return { word: word, range: wordRange };
+					return {word: word, range: wordRange};
 				}
 				text = currentTextNode.getText();
 				for (i = ww.offset; i < text.length; i++) {
@@ -177,17 +259,32 @@
 						wordRange.setEnd(currentTextNode, i);
 
 						ww.offset = ww.getOffsetToNextNonSeparator(text, i);
-						if (word) {
+						if (word && !isSelectedWord) {
 							// if you hit a word separator and there is word text, return it
-							return { word: word, range: wordRange };
+							return {word: ww.normalizeWord(word), range: wordRange};
 						}
 						else {
 							// if the word is blank, set the start of the range to the next
 							// non-separator text
 							wordRange.setStart(currentTextNode, ww.offset);
+
+							// new word
+							isSelectedWord = false;
+							word = '';
 						}
 					}
+					else if (currentTextNode.equals(selectionNode) && selectionOffset === i) {
+						isSelectedWord = true;
+					}
 				}
+				// catch case where the caret was touching the back of the text node
+				// normally this should only be at the very end of the block
+				// since we prefer to put the caret at the start of text nodes
+				// but things can be weird.
+				if (currentTextNode.equals(selectionNode) && selectionOffset === i) {
+					isSelectedWord = true;
+				}
+
 				word += text.substr(ww.offset);
 				ww.offset = 0;
 				wordRange.setEnd(currentTextNode, i);
@@ -198,7 +295,7 @@
 			// reached the end of block,
 			// so just return what we've walked
 			// of the current word.
-			if (word) return {word: word, range: wordRange};
+			if (word && !isSelectedWord) return {word: ww.normalizeWord(word), range: wordRange};
 		}
 	};
 
@@ -206,7 +303,7 @@
 		this.enabled = false;
 
 		//
-		if (typeof store !== "undefined" ) {
+		if (typeof store !== "undefined") {
 			if (store.enabled) {
 				this.enabled = true;
 				this.addPersonal = this.addPersonalStoreJs;
@@ -465,7 +562,7 @@
 					clearTimeout(self._timer);
 					self._timer = null;
 				}
-				clearAllSpellCheckingSpans(editor.editable());
+				self.clearAllSpellCheckingSpans(editor.editable());
 			}
 
 			function checkNow(rootElement) {
@@ -513,15 +610,29 @@
 				}
 
 				var elementPath = new CKEDITOR.dom.elementPath(target);
+				var selection = editor.getSelection();
+				var range = selection.getRanges()[0];
 
 				//if! user is typing on a typo remove its underline
 
 				var spellCheckSpan = elementPath.contains(isSpellCheckSpan);
 
-				if (spellCheckSpan) {
+				if (!spellCheckSpan) {
+					// if we are not directly inside a span, we can still be touching the edge
+					if (isSpellCheckSpan(range.getTouchedStartNode())) {
+						spellCheckSpan = range.getTouchedStartNode();
+					}
+					else if (isSpellCheckSpan(range.getTouchedEndNode())) {
+						spellCheckSpan = range.getTouchedEndNode();
+					}
+				} else {
+					// somehow our spellcheck block was a span, so we need to get the parent instead.
 					target = findNearestParentBlock(target);
+				}
+
+				if (spellCheckSpan) {
 					var bookmarks = editor.getSelection().createBookmarks(true);
-					unwrapTypoSpan(spellCheckSpan);
+					self.unwrapTypoSpan(spellCheckSpan);
 					editor.getSelection().selectBookmarks(bookmarks);
 				}
 
@@ -541,7 +652,7 @@
 			}
 
 			function isSpellCheckSpan(node) {
-				return node.getName() === 'span' && node.hasClass('nanospell-typo');
+				return node.type === CKEDITOR.NODE_ELEMENT && node.getName() === 'span' && node.hasClass('nanospell-typo');
 			}
 
 			function checkWords(event) {
@@ -625,23 +736,6 @@
 				editor.fire(EVENT_NAMES.SPELLCHECK_COMPLETE);
 			}
 
-			function clearAllSpellCheckingSpans(element) {
-				var spans = element.find('span.nanospell-typo');
-
-				for (var i = 0; i < spans.count(); i++) {
-					var span = spans.getItem(i);
-					unwrapTypoSpan(span);
-				}
-
-			}
-
-			function clearAllSpellCheckingSpansFromString(htmlString) {
-				var element = new CKEDITOR.dom.element('div');
-				element.setHtml(htmlString);
-				clearAllSpellCheckingSpans(element);
-				return element.getHtml();
-			}
-
 			function appendCustomStyles(path) {
 				CKEDITOR.document.appendStyleSheet(path + "/theme/nanospell.css");
 			}
@@ -721,9 +815,9 @@
 					word;
 
 				range.selectNodeContents(block);
-				var wordwalker = new self.WordWalker(range);
+				var wordwalker = new self.WordWalker(editor, range);
 
-				while(currentWordObj = wordwalker.getNextWord()) {
+				while (currentWordObj = wordwalker.getNextWord()) {
 					word = currentWordObj.word;
 					if (word) words.push(word);
 				}
@@ -761,10 +855,6 @@
 					}
 				}
 				return suggestionscache[word];
-			}
-
-			function unwrapTypoSpan(span) {
-				span.remove(true);
 			}
 
 			function selectionCollapsed() {
@@ -820,8 +910,8 @@
 						var retval = (this.status == 'ready');
 
 						if (retval) {
-							var currentData = clearAllSpellCheckingSpansFromString(this.getSnapshot()),
-								prevData = clearAllSpellCheckingSpansFromString(this._.previousValue);
+							var currentData = self.clearAllSpellCheckingSpansFromString(this.getSnapshot()),
+								prevData = self.clearAllSpellCheckingSpansFromString(this._.previousValue);
 
 							retval = (retval && (prevData !== currentData))
 						}
@@ -832,12 +922,29 @@
 
 				editorCheckDirty.resetDirty = CKEDITOR.tools.override(editorCheckDirty.resetDirty, function (org) {
 					return function () {
-						this._.previousValue = clearAllSpellCheckingSpansFromString(this.getSnapshot());
+						this._.previousValue = self.clearAllSpellCheckingSpansFromString(this.getSnapshot());
 					};
 				});
 			}
 
 
+		},
+		unwrapTypoSpan: function(span) {
+			span.remove(true);
+		},
+		clearAllSpellCheckingSpans: function (element) {
+			var spans = element.find('span.nanospell-typo');
+
+			for (var i = 0; i < spans.count(); i++) {
+				var span = spans.getItem(i);
+				this.unwrapTypoSpan(span);
+			}
+		},
+		clearAllSpellCheckingSpansFromString: function (htmlString) {
+			var element = new CKEDITOR.dom.element('div');
+			element.setHtml(htmlString);
+			this.clearAllSpellCheckingSpans(element);
+			return element.getHtml();
 		},
 		addRule: function (editor) {
 			var dataProcessor = editor.dataProcessor,
@@ -943,8 +1050,28 @@
 			}
 			return !this.hasPersonal(word);
 		},
+		rangeIsFullyMarked: function (range) {
+			var startContainer, endContainer;
+			range.optimize();
+
+			startContainer = range.startContainer;
+			endContainer = range.endContainer;
+
+			if (startContainer.type === CKEDITOR.NODE_ELEMENT && startContainer.getName() === 'span' && startContainer.hasClass('nanospell-typo') && startContainer.equals(endContainer)) {
+				return true;
+			}
+			return false;
+		},
 		wrapWithTypoSpan: function (editor, range) {
-			var span = editor.document.createElement(
+			var span;
+
+			// if the range is entirely a typo span already, we can abort
+
+			if (this.rangeIsFullyMarked(range)) {
+				return;
+			}
+
+			span = editor.document.createElement(
 				'span',
 				{
 					attributes: {
@@ -953,8 +1080,10 @@
 				}
 			);
 
-			range.shrink(CKEDITOR.SHRINK_TEXT);
-			range.extractContents().appendTo(span);
+			var extracted = range.extractContents();
+			extracted.appendTo(span);
+			// clear any leftover spans which may be left behind from merging words
+			this.clearAllSpellCheckingSpans(span);
 			range.insertNode(span);
 		},
 		markTypos: function (editor, node) {
@@ -965,7 +1094,7 @@
 		},
 		markTyposInRange: function (editor, range) {
 			var match;
-			var wordwalker = new this.WordWalker(range);
+			var wordwalker = new this.WordWalker(editor, range);
 			var badRanges = [];
 			var matchtext;
 
@@ -979,7 +1108,6 @@
 					continue;
 				}
 				badRanges.push(match.range)
-
 			}
 
 			var rangeListIterator = (new CKEDITOR.dom.rangeList(badRanges)).createIterator();
