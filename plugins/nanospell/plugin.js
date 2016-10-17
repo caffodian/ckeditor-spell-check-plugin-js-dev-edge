@@ -196,7 +196,7 @@
 				selectionNode = selectionRange.startContainer;
 				selectionOffset = selectionRange.startOffset;
 
-				if (selectionNode.type !== CKEDITOR.NODE_TEXT) {
+				if (selectionNode.type === CKEDITOR.NODE_ELEMENT) {
 					// Text nodes don't have children, but if it's a text node,
 					// we won't actually have a next iteration anyway.
 					selectionChildren = selectionNode.getChildren();
