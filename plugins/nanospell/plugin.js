@@ -59,7 +59,7 @@
 		// (for example, p, li, td)
 		// and provides a mechanism for iterating over each word within,
 		// ignoring non-block elements.  (for example, span)
-		var isNotBookmark = CKEDITOR.dom.walker.bookmark(false, true);
+		var isBookmark = CKEDITOR.dom.walker.bookmark();
 		var startNode = range.startContainer;
 		var ww = this;
 
@@ -87,7 +87,6 @@
 			var condition = node.type == CKEDITOR.NODE_TEXT && // it is a text node
 				node.getLength() > 0 &&  // and it's not empty
 				( !node.isReadOnly() ) &&   // or read only
-				isNotBookmark(node) && // and isn't a fake bookmarking node
 				(blockLimit ? blockLimitIsStartNode : true) && // check we don't enter another block-like element
 				(block ? blockIsStartNode : true); // check we don't enter nested blocks (special list case since it's not considered a limit)
 
@@ -96,7 +95,6 @@
 
 			if (!condition) {
 				if (node.type == CKEDITOR.NODE_ELEMENT &&
-					isNotBookmark(node) &&
 					((blockLimit && !blockLimitIsStartNode) ||
 					(block && !blockIsStartNode) ||
 					node.is('br', 'sup', 'sub'))) {
@@ -110,6 +108,7 @@
 
 		ww.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(range);
 		ww.rootBlockTextNodeWalker.evaluator = isRootBlockTextNode;
+		ww.rootBlockTextNodeWalker.guard = isBookmark;
 
 		var wordSeparatorRegex = /[.,"?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
 
