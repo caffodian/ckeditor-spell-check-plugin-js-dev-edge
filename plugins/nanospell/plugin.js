@@ -162,6 +162,13 @@
 
 			// move one word if necessary ??
 
+			// we should now be on the first text node after the bookmark.
+
+			// we need to now move to the next "word" since we might still have a partial word.
+
+			// the weird case to handle is if the bookmark was on the start or end of a word.
+			// maybe some refactoring is required to handle these cases correctly.
+
 		},
 		normalizeWord: function (word) {
 			// hex 200b = 8203 = zerowidth space
