@@ -186,7 +186,7 @@
 						wordRange.setEnd(currentTextNode, i);
 
 						ww.offset = ww.getOffsetToNextNonSeparator(text, i);
-						if (word && !isSelectedWord) {
+						if (word) {
 							// if you hit a word separator and there is word text, return it
 							return {word: ww.normalizeWord(word), range: wordRange};
 						}
@@ -195,21 +195,9 @@
 							// non-separator text
 							wordRange.setStart(currentTextNode, ww.offset);
 
-							// new word
-							isSelectedWord = false;
 							word = '';
 						}
 					}
-					else if (currentTextNode.equals(selectionNode) && selectionOffset === i) {
-						isSelectedWord = true;
-					}
-				}
-				// catch case where the caret was touching the back of the text node
-				// normally this should only be at the very end of the block
-				// since we prefer to put the caret at the start of text nodes
-				// but things can be weird.
-				if (currentTextNode.equals(selectionNode) && selectionOffset === i) {
-					isSelectedWord = true;
 				}
 
 				word += text.substr(ww.offset);
@@ -222,7 +210,7 @@
 			// we either exhausted the block or hit our bookmark
 			// so just return what we've walked
 			// of the current word.
-			if (word && !isSelectedWord) return {word: ww.normalizeWord(word), range: wordRange};
+			if (word) return {word: ww.normalizeWord(word), range: wordRange};
 		}
 	};
 
