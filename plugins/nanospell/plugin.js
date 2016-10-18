@@ -156,18 +156,6 @@
 			var wordRange = ww.origRange.clone();
 			var i;
 			var text;
-			var selection = ww.editor.getSelection();
-			var selectionNode, selectionOffset;
-			var isSelectedWord = false;
-
-
-			if (selection) {
-				var selectionMarker = ww.getTextNodePositionFromSelection(selection);
-				if (selectionMarker) {
-					selectionNode = selectionMarker.node;
-					selectionOffset = selectionMarker.offset;
-				}
-			}
 
 			if (currentTextNode === null) {
 				return null;
