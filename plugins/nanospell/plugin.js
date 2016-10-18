@@ -148,7 +148,7 @@
 			// determine what the new range should be
 			var ww = this;
 			var newRange = ww.origRange.clone();
-			newRange.setStartAfter(lastRange.endContainer, lastRange.endOffset);
+			newRange.setStart(lastRange.endContainer.getParent(), lastRange.endContainer.getIndex() + 2);
 
 			// given the last "word" range returned from the first half, start the second walker.
 
