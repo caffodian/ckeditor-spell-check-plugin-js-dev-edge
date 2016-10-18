@@ -106,9 +106,12 @@
 			return condition;
 		}
 
+		ww.walkerEvaluator = isRootBlockTextNode;
+		ww.walkerGuard = isBookmark;
+
 		ww.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(range);
-		ww.rootBlockTextNodeWalker.evaluator = isRootBlockTextNode;
-		ww.rootBlockTextNodeWalker.guard = isBookmark;
+		ww.rootBlockTextNodeWalker.evaluator = ww.walkerEvaluator;
+		ww.rootBlockTextNodeWalker.guard = ww.walkerGuard;
 
 		var wordSeparatorRegex = /[.,"?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
 
@@ -142,9 +145,18 @@
 
 		},
 		initializeSecondNodeWalker: function(lastRange) {
+			// determine what the new range should be
+			var ww = this;
+			var newRange = ww.origRange.clone();
+			newRange.setStartAt(lastRange.endContainer, lastRange.endOffset);
+
 			// given the last "word" range returned from the first half, start the second walker.
 
-			// move one word if necessary ?
+			ww.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(newRange);
+			ww.rootBlockTextNodeWalker.evaluator = ww.walkerEvaluator;
+			ww.rootBlockTextNodeWalker.guard = ww.walkerGuard;
+
+			// move one word if necessary ??
 
 		},
 		normalizeWord: function (word) {
