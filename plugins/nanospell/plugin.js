@@ -123,6 +123,7 @@
 		ww.offset = 0;
 		ww.origRange = range;
 		ww.editor = editor;
+		ww.firstHalf = true;
 	}
 
 	WordWalker.prototype = {
@@ -138,6 +139,12 @@
 			}
 
 			return i;
+
+		},
+		initializeSecondNodeWalker: function(lastRange) {
+			// given the last "word" range returned from the first half, start the second walker.
+
+			// move one word if necessary ?
 
 		},
 		normalizeWord: function (word) {
@@ -162,6 +169,8 @@
 			}
 
 			wordRange.setStart(currentTextNode, ww.offset);
+
+			// first half
 
 			while (currentTextNode !== null) {
 				// this if block returns the word and range if we still have valid
