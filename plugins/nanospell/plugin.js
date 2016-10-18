@@ -148,13 +148,17 @@
 			// determine what the new range should be
 			var ww = this;
 			var newRange = ww.origRange.clone();
-			newRange.setStartAt(lastRange.endContainer, lastRange.endOffset);
+			newRange.setStartAfter(lastRange.endContainer, lastRange.endOffset);
 
 			// given the last "word" range returned from the first half, start the second walker.
 
 			ww.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(newRange);
 			ww.rootBlockTextNodeWalker.evaluator = ww.walkerEvaluator;
-			ww.rootBlockTextNodeWalker.guard = ww.walkerGuard;
+			//ww.rootBlockTextNodeWalker.guard = ww.walkerGuard;
+
+			ww.textNode = ww.rootBlockTextNodeWalker.next();
+			ww.hitWordBreak = false;
+			ww.offset = 0;
 
 			// move one word if necessary ??
 
@@ -226,6 +230,7 @@
 				// we initialize the second node walker (which walks the second half of the range)
 				ww.firstHalf = false;
 				ww.initializeSecondNodeWalker(wordRange);
+				return ww.getNextWord();
 			}
 			else if (word) {
 				// this is the remnants of the word
@@ -753,7 +758,9 @@
 					word;
 
 				range.selectNodeContents(block);
+				var bookmarks = editor.getSelection().createBookmarks(true);
 				var wordwalker = new self.WordWalker(editor, range);
+				editor.getSelection().selectBookmarks(bookmarks); // we may not need to select, just blow it up
 
 				while (currentWordObj = wordwalker.getNextWord()) {
 					word = currentWordObj.word;

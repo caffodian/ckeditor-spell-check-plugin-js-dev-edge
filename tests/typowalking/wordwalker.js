@@ -5,7 +5,10 @@
 
 bender.editor = {
 	config: {
-		enterMode: CKEDITOR.ENTER_P
+		enterMode: CKEDITOR.ENTER_P,
+		nanospell: {
+			autostart: false
+		}
 	},
 };
 
@@ -28,6 +31,8 @@ bender.test( {
 		// assume there is only one block level element.
 		range.selectNodeContents( root );
 
+		var bookmarks = editor.getSelection().createBookmarks(true);
+
 		wordwalker = new editor.plugins.nanospell.WordWalker(editor, range);
 
 		while (currWordObj = wordwalker.getNextWord()) {
@@ -36,6 +41,8 @@ bender.test( {
 			wordsReturned.words.push(word);
 			wordsReturned.ranges.push(range);
 		}
+
+		editor.getSelection().selectBookmarks(bookmarks);
 
 		return wordsReturned;
 	},
