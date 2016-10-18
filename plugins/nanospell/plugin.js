@@ -144,6 +144,20 @@
 			return i;
 
 		},
+		getOffsetToNextSeparator: function (text, startIndex) {
+			var i, length;
+			length = text.length;
+			var ww = this;
+
+			for (i = startIndex + 1; i < length; i++) {
+				if (ww.isWordSeparator(text[i])) {
+					break;
+				}
+			}
+
+			return i;
+
+		},
 		initializeSecondNodeWalker: function(lastRange) {
 			// determine what the new range should be
 			var ww = this;
@@ -158,9 +172,12 @@
 
 			ww.textNode = ww.rootBlockTextNodeWalker.next();
 			ww.hitWordBreak = false;
-			ww.offset = 0;
 
-			// move one word if necessary ??
+			// if we are already on a separator, this will skip it.
+			if (ww.textNode) {
+				var nextSpace = ww.getOffsetToNextSeparator(ww.textNode.getText(), 0);
+				ww.offset = ww.getofsetToNextNonSeparator(ww.textNode.getText(), nextSpace);
+			}
 
 			// we should now be on the first text node after the bookmark.
 
