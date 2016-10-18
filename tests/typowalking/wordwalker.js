@@ -27,11 +27,13 @@ bender.test( {
 			currWordObj,
 			word;
 
+		var bookmarks = editor.getSelection().createBookmarks(true);
+
 		range = editor.createRange();
 		// assume there is only one block level element.
 		range.selectNodeContents( root );
 
-		var bookmarks = editor.getSelection().createBookmarks(true);
+
 
 		wordwalker = new editor.plugins.nanospell.WordWalker(editor, range);
 

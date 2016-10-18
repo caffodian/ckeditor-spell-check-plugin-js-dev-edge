@@ -59,7 +59,7 @@
 		// (for example, p, li, td)
 		// and provides a mechanism for iterating over each word within,
 		// ignoring non-block elements.  (for example, span)
-		var isBookmark = CKEDITOR.dom.walker.bookmark();
+		var isBookmark = CKEDITOR.dom.walker.bookmark(false, true);
 		var startNode = range.startContainer;
 		var ww = this;
 
