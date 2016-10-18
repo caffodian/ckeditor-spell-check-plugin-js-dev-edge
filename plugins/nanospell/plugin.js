@@ -59,11 +59,21 @@
 		// (for example, p, li, td)
 		// and provides a mechanism for iterating over each word within,
 		// ignoring non-block elements.  (for example, span)
-		var isBookmark = CKEDITOR.dom.walker.bookmark(false, true);
+		var bookmarkGuardFn = CKEDITOR.dom.walker.bookmark(false, true);
 		var startNode = range.startContainer;
 		var ww = this;
 
 		ww.hitWordBreak = false;
+		ww.hitBookmark = false;
+
+		var isBookmark = function(node) {
+			var isNotBookmark = bookmarkGuardFn(node);
+			if (!isNotBookmark) {
+				ww.hitBookmark = true;
+			}
+
+			return isNotBookmark;
+		};
 
 		function isRootBlockTextNode(node) {
 			// this function is an evaluator used to return only
@@ -168,15 +178,25 @@
 
 			ww.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(newRange);
 			ww.rootBlockTextNodeWalker.evaluator = ww.walkerEvaluator;
-			//ww.rootBlockTextNodeWalker.guard = ww.walkerGuard;
+			ww.rootBlockTextNodeWalker.guard = ww.walkerGuard;
 
 			ww.textNode = ww.rootBlockTextNodeWalker.next();
-			ww.hitWordBreak = false;
 
-			// if we are already on a separator, this will skip it.
 			if (ww.textNode) {
-				var nextSpace = ww.getOffsetToNextSeparator(ww.textNode.getText(), 0);
-				ww.offset = ww.getofsetToNextNonSeparator(ww.textNode.getText(), nextSpace);
+				// we are on the text node immediately after a bookmark
+
+				if (ww.isWordSeparator(ww.textNode.getText()[0])) {
+					// This text node starts with a space-like character
+					// so just start on the next non-space
+					ww.offset = ww.getOffsetToNextNonSeparator(ww.textNode.getText(), 0);
+				}
+				else {
+					// The bookmark is immediately followed by text
+					// we should skip that text (since we skip the word the marker is on)
+					// And instead start on the next word after the next space-like character.
+					var nextSpace = ww.getOffsetToNextSeparator(ww.textNode.getText(), 0)
+					ww.offset = ww.getOffsetToNextNonSeparator(ww.textNode.getText(), nextSpace);
+				}
 			}
 
 			// we should now be on the first text node after the bookmark.
@@ -209,8 +229,6 @@
 			}
 
 			wordRange.setStart(currentTextNode, ww.offset);
-
-			// first half
 
 			while (currentTextNode !== null) {
 				// this if block returns the word and range if we still have valid
@@ -249,10 +267,10 @@
 			}
 			// we either exhausted the block or hit our bookmark
 
-			if (ww.firstHalf) {
+			if (ww.hitBookmark) {
 				// if we're in the first half,
 				// we initialize the second node walker (which walks the second half of the range)
-				ww.firstHalf = false;
+				ww.hitBookmark = false;
 				ww.initializeSecondNodeWalker(wordRange);
 				return ww.getNextWord();
 			}
