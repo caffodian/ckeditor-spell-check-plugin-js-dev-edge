@@ -219,7 +219,7 @@
 
 				ww.textNode = currentTextNode;
 			}
-			// reached the end of block,
+			// we either exhausted the block or hit our bookmark
 			// so just return what we've walked
 			// of the current word.
 			if (word && !isSelectedWord) return {word: ww.normalizeWord(word), range: wordRange};
