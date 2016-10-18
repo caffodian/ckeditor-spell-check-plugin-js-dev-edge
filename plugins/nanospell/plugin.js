@@ -69,7 +69,7 @@
 		var isBookmark = function(node) {
 			var isNotBookmark = bookmarkGuardFn(node);
 			if (!isNotBookmark) {
-				ww.hitBookmark = true;
+				ww.lastBookmark = node;
 			}
 
 			return isNotBookmark;
@@ -134,9 +134,13 @@
 
 		ww.textNode = ww.rootBlockTextNodeWalker.next();
 		ww.offset = 0;
-		ww.origRange = range;
+		ww.origRange = range.clone();
 		ww.editor = editor;
-		ww.firstHalf = true;
+		if (ww.lastBookmark) {
+			range.moveToClosestEditablePosition(ww.lastBookmark, true);
+			ww.lastBookmark = null;
+			ww.initializeSecondNodeWalker(range);
+		}
 	}
 
 	WordWalker.prototype = {
@@ -172,7 +176,7 @@
 			// determine what the new range should be
 			var ww = this;
 			var newRange = ww.origRange.clone();
-			newRange.setStart(lastRange.endContainer.getParent(), lastRange.endContainer.getIndex() + 2);
+			newRange.setStart(lastRange.endContainer, lastRange.endOffset);
 
 			// given the last "word" range returned from the first half, start the second walker.
 
@@ -183,18 +187,23 @@
 			ww.textNode = ww.rootBlockTextNodeWalker.next();
 
 			if (ww.textNode) {
-				// we are on the text node immediately after a bookmark
-
-				if (ww.isWordSeparator(ww.textNode.getText()[0])) {
+				if (ww.hitWordBreak) {
+					// we hit a word breaking element to get to this node.
+					ww.hitWordBreak = false;
+					ww.offset = 0;
+				}
+				else if (ww.isWordSeparator(ww.textNode.getText()[0])) {
+					// We are on the text node immediately after a bookmark.
 					// This text node starts with a space-like character
 					// so just start on the next non-space
 					ww.offset = ww.getOffsetToNextNonSeparator(ww.textNode.getText(), 0);
 				}
 				else {
+					// We are on the text node immediately after a bookmark.
 					// The bookmark is immediately followed by text
 					// we should skip that text (since we skip the word the marker is on)
 					// And instead start on the next word after the next space-like character.
-					var nextSpace = ww.getOffsetToNextSeparator(ww.textNode.getText(), 0)
+					var nextSpace = ww.getOffsetToNextSeparator(ww.textNode.getText(), 0);
 					ww.offset = ww.getOffsetToNextNonSeparator(ww.textNode.getText(), nextSpace);
 				}
 			}
@@ -267,11 +276,12 @@
 			}
 			// we either exhausted the block or hit our bookmark
 
-			if (ww.hitBookmark) {
+			if (ww.lastBookmark) {
 				// if we're in the first half,
 				// we initialize the second node walker (which walks the second half of the range)
-				ww.hitBookmark = false;
+				wordRange.moveToClosestEditablePosition(ww.lastBookmark,true );
 				ww.initializeSecondNodeWalker(wordRange);
+				ww.lastBookmark = null;
 				return ww.getNextWord();
 			}
 			else if (word) {
