@@ -208,9 +208,20 @@
 				ww.textNode = currentTextNode;
 			}
 			// we either exhausted the block or hit our bookmark
-			// so just return what we've walked
-			// of the current word.
-			if (word) return {word: ww.normalizeWord(word), range: wordRange};
+
+			if (ww.firstHalf) {
+				// if we're in the first half,
+				// we initialize the second node walker (which walks the second half of the range)
+				ww.firstHalf = false;
+				ww.initializeSecondNodeWalker(wordRange);
+			}
+			else if (word) {
+				// this is the remnants of the word
+				return {
+					word: ww.normalizeWord(word),
+					range: wordRange
+				};
+			}
 		}
 	};
 
