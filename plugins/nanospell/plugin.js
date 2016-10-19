@@ -65,6 +65,9 @@
 
 		ww.hitWordBreak = false;
 		ww.hitBookmark = false;
+		ww.offset = 0;
+		ww.origRange = range.clone();
+		ww.editor = editor;
 
 		var isBookmark = function(node) {
 			var isNotBookmark = bookmarkGuardFn(node);
@@ -127,10 +130,6 @@
 			var code = character.charCodeAt(0);
 			return ( code >= 9 && code <= 0xd ) || ( code >= 0x2000 && code <= 0x200a ) || wordSeparatorRegex.test(character);
 		};
-
-		ww.offset = 0;
-		ww.origRange = range.clone();
-		ww.editor = editor;
 
 		ww.initializeNodeWalker();
 
