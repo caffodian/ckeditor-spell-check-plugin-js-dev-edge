@@ -308,7 +308,7 @@ bender.test( {
 		wordObjectsReturned = this.getWordObjectsWithWordWalker(paragraphWithTags);
 		rangesReturned = this.getWordRanges(wordObjectsReturned.ranges);
 		wordsReturned = wordObjectsReturned.words;
-		
+
 		arrayAssert.itemsAreEqual(["couldn't", "shouldn't", "wouldn't", "dunno'grammar"], wordsReturned);
 		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
 	},
@@ -391,7 +391,5 @@ bender.test( {
 
 		arrayAssert.itemsAreEqual(["foo"], wordsReturned);
 		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
-	},
-
-
+	}
 } );
