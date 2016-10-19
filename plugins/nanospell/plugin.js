@@ -119,10 +119,6 @@
 		ww.walkerEvaluator = isRootBlockTextNode;
 		ww.walkerGuard = isBookmark;
 
-		ww.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(range);
-		ww.rootBlockTextNodeWalker.evaluator = ww.walkerEvaluator;
-		ww.rootBlockTextNodeWalker.guard = ww.walkerGuard;
-
 		var wordSeparatorRegex = /[.,"?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
 
 		ww.isWordSeparator = function (character) {
@@ -132,14 +128,17 @@
 			return ( code >= 9 && code <= 0xd ) || ( code >= 0x2000 && code <= 0x200a ) || wordSeparatorRegex.test(character);
 		};
 
-		ww.textNode = ww.rootBlockTextNodeWalker.next();
 		ww.offset = 0;
 		ww.origRange = range.clone();
 		ww.editor = editor;
+
+		ww.initializeNodeWalker();
+
+		// special case where we immediately hit a bookmark.
 		if (ww.lastBookmark) {
 			range.moveToClosestEditablePosition(ww.lastBookmark, true);
 			ww.lastBookmark = null;
-			ww.initializeSecondNodeWalker(range);
+			ww.initializeNodeWalker(range);
 		}
 	}
 
@@ -172,13 +171,15 @@
 			return i;
 
 		},
-		initializeSecondNodeWalker: function(lastRange) {
+		initializeNodeWalker: function(lastRangeFound) {
 			// determine what the new range should be
 			var ww = this;
 			var newRange = ww.origRange.clone();
-			newRange.setStart(lastRange.endContainer, lastRange.endOffset);
-
-			// given the last "word" range returned from the first half, start the second walker.
+			var isFirst = true;
+			if (lastRangeFound) {
+				isFirst = false;
+				newRange.setStart(lastRangeFound.endContainer, lastRangeFound.endOffset);
+			}
 
 			ww.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(newRange);
 			ww.rootBlockTextNodeWalker.evaluator = ww.walkerEvaluator;
@@ -186,9 +187,14 @@
 
 			ww.textNode = ww.rootBlockTextNodeWalker.next();
 
-			if (ww.textNode) {
+			// when resuming a range after a bookmark,
+			// we need to skip any leftover pieces of the word
+			// (if the bookmark was in the middle of a word)
+			// and move to the next word (if there are multiple spaces in between)
+
+			if (ww.textNode && !isFirst) {
 				if (ww.hitWordBreak) {
-					// we hit a word breaking element to get to this node.
+					// we hit a word breaking element (br) immediately after resuming
 					ww.hitWordBreak = false;
 					ww.offset = 0;
 				}
@@ -207,14 +213,6 @@
 					ww.offset = ww.getOffsetToNextNonSeparator(ww.textNode.getText(), nextSpace);
 				}
 			}
-
-			// we should now be on the first text node after the bookmark.
-
-			// we need to now move to the next "word" since we might still have a partial word.
-
-			// the weird case to handle is if the bookmark was on the start or end of a word.
-			// maybe some refactoring is required to handle these cases correctly.
-
 		},
 		normalizeWord: function (word) {
 			// hex 200b = 8203 = zerowidth space
@@ -277,10 +275,10 @@
 			// we either exhausted the block or hit our bookmark
 
 			if (ww.lastBookmark) {
-				// if we're in the first half,
-				// we initialize the second node walker (which walks the second half of the range)
-				wordRange.moveToClosestEditablePosition(ww.lastBookmark,true );
-				ww.initializeSecondNodeWalker(wordRange);
+				// We stopped due to hitting a bookmark.
+				// Initialize an additional node walker at the range following the bookmark.
+				wordRange.moveToClosestEditablePosition(ww.lastBookmark, true);
+				ww.initializeNodeWalker(wordRange);
 				ww.lastBookmark = null;
 				return ww.getNextWord();
 			}
