@@ -70,6 +70,11 @@
 		ww.editor = editor;
 
 		var isBookmark = function(node) {
+			// This function is required so that we can later retrieve
+			// a reference to the bookmark which triggered the guard condition on the walker.
+			// Otherwise we have to essentially re-implement the walker just to retrieve it.
+			// (Suppose cases where the last word returned is followed by a number of invalid
+			// elements, then a bookmark)
 			var isNotBookmark = bookmarkGuardFn(node);
 			if (!isNotBookmark) {
 				ww.lastBookmark = node;
