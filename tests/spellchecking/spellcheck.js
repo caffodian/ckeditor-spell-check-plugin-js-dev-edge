@@ -600,7 +600,7 @@
 				resumeAfter = bender.tools.resumeAfter;
 
 			bot.setHtmlWithSelection(
-				'<p><span class="nanospell-typo">qui</span>^<span class="nanospell-typo">asdf</span></p>'
+				'<p><span class="nanospell-typo">qui</span><span class="nanospell-typo">asdf</span> ^</p>'
 			);
 
 			resumeAfter(editor, 'spellCheckComplete', function () {

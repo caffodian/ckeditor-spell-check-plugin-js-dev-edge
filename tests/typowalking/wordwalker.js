@@ -5,7 +5,10 @@
 
 bender.editor = {
 	config: {
-		enterMode: CKEDITOR.ENTER_P
+		enterMode: CKEDITOR.ENTER_P,
+		nanospell: {
+			autostart: false
+		}
 	},
 };
 
@@ -24,9 +27,13 @@ bender.test( {
 			currWordObj,
 			word;
 
+		var bookmarks = editor.getSelection().createBookmarks(true);
+
 		range = editor.createRange();
 		// assume there is only one block level element.
 		range.selectNodeContents( root );
+
+
 
 		wordwalker = new editor.plugins.nanospell.WordWalker(editor, range);
 
@@ -36,6 +43,8 @@ bender.test( {
 			wordsReturned.words.push(word);
 			wordsReturned.ranges.push(range);
 		}
+
+		editor.getSelection().selectBookmarks(bookmarks);
 
 		return wordsReturned;
 	},
@@ -291,7 +300,7 @@ bender.test( {
 			wordsReturned;
 
 		bot.setHtmlWithSelection(
-			"<p>couldn't shouldn't wouldn't dunno'grammar ^</p>"
+			"<p>couldn't shouldn't wouldn't dunno'grammar</p>"
 		);
 
 		paragraphWithTags = this.editor.editable().getFirst();
@@ -382,7 +391,5 @@ bender.test( {
 
 		arrayAssert.itemsAreEqual(["foo"], wordsReturned);
 		arrayAssert.itemsAreEqual(wordsReturned, rangesReturned);
-	},
-
-
+	}
 } );

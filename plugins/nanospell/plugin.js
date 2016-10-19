@@ -59,11 +59,29 @@
 		// (for example, p, li, td)
 		// and provides a mechanism for iterating over each word within,
 		// ignoring non-block elements.  (for example, span)
-		var isNotBookmark = CKEDITOR.dom.walker.bookmark(false, true);
+		var bookmarkGuardFn = CKEDITOR.dom.walker.bookmark(false, true);
 		var startNode = range.startContainer;
 		var ww = this;
 
 		ww.hitWordBreak = false;
+		ww.hitBookmark = false;
+		ww.offset = 0;
+		ww.origRange = range.clone();
+		ww.editor = editor;
+
+		var isBookmark = function(node) {
+			// This function is required so that we can later retrieve
+			// a reference to the bookmark which triggered the guard condition on the walker.
+			// Otherwise we have to essentially re-implement the walker just to retrieve it.
+			// (Suppose cases where the last word returned is followed by a number of invalid
+			// elements, then a bookmark)
+			var isNotBookmark = bookmarkGuardFn(node);
+			if (!isNotBookmark) {
+				ww.lastBookmark = node;
+			}
+
+			return isNotBookmark;
+		};
 
 		function isRootBlockTextNode(node) {
 			// this function is an evaluator used to return only
@@ -87,7 +105,6 @@
 			var condition = node.type == CKEDITOR.NODE_TEXT && // it is a text node
 				node.getLength() > 0 &&  // and it's not empty
 				( !node.isReadOnly() ) &&   // or read only
-				isNotBookmark(node) && // and isn't a fake bookmarking node
 				(blockLimit ? blockLimitIsStartNode : true) && // check we don't enter another block-like element
 				(block ? blockIsStartNode : true); // check we don't enter nested blocks (special list case since it's not considered a limit)
 
@@ -96,7 +113,6 @@
 
 			if (!condition) {
 				if (node.type == CKEDITOR.NODE_ELEMENT &&
-					isNotBookmark(node) &&
 					((blockLimit && !blockLimitIsStartNode) ||
 					(block && !blockIsStartNode) ||
 					node.is('br', 'sup', 'sub'))) {
@@ -108,8 +124,8 @@
 			return condition;
 		}
 
-		ww.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(range);
-		ww.rootBlockTextNodeWalker.evaluator = isRootBlockTextNode;
+		ww.walkerEvaluator = isRootBlockTextNode;
+		ww.walkerGuard = isBookmark;
 
 		var wordSeparatorRegex = /[.,"?!;: \u0085\u00a0\u1680\u280e\u2028\u2029\u202f\u205f\u3000]/;
 
@@ -120,10 +136,14 @@
 			return ( code >= 9 && code <= 0xd ) || ( code >= 0x2000 && code <= 0x200a ) || wordSeparatorRegex.test(character);
 		};
 
-		ww.textNode = ww.rootBlockTextNodeWalker.next();
-		ww.offset = 0;
-		ww.origRange = range;
-		ww.editor = editor;
+		ww.initializeNodeWalker();
+
+		// special case where we immediately hit a bookmark.
+		if (ww.lastBookmark) {
+			range.moveToClosestEditablePosition(ww.lastBookmark, true);
+			ww.lastBookmark = null;
+			ww.initializeNodeWalker(range);
+		}
 	}
 
 	WordWalker.prototype = {
@@ -141,78 +161,66 @@
 			return i;
 
 		},
+		getOffsetToNextSeparator: function (text, startIndex) {
+			var i, length;
+			length = text.length;
+			var ww = this;
+
+			for (i = startIndex + 1; i < length; i++) {
+				if (ww.isWordSeparator(text[i])) {
+					break;
+				}
+			}
+
+			return i;
+
+		},
+		initializeNodeWalker: function(lastRangeFound) {
+			// determine what the new range should be
+			var ww = this;
+			var newRange = ww.origRange.clone();
+			var skipFirstWord = false;
+			if (lastRangeFound) {
+				skipFirstWord = true;
+				newRange.setStart(lastRangeFound.endContainer, lastRangeFound.endOffset);
+			}
+
+			ww.rootBlockTextNodeWalker = new CKEDITOR.dom.walker(newRange);
+			ww.rootBlockTextNodeWalker.evaluator = ww.walkerEvaluator;
+			ww.rootBlockTextNodeWalker.guard = ww.walkerGuard;
+
+			ww.textNode = ww.rootBlockTextNodeWalker.next();
+
+			// when resuming a range after a bookmark,
+			// we need to skip any leftover pieces of the word
+			// (if the bookmark was in the middle of a word)
+			// and move to the next word (if there are multiple spaces in between)
+
+			if (ww.textNode && skipFirstWord) {
+				if (ww.hitWordBreak) {
+					// we hit a word breaking element (br) immediately after resuming
+					ww.hitWordBreak = false;
+					ww.offset = 0;
+				}
+				else if (ww.isWordSeparator(ww.textNode.getText()[0])) {
+					// We are on the text node immediately after a bookmark.
+					// This text node starts with a space-like character
+					// so just start on the next non-space
+					ww.offset = ww.getOffsetToNextNonSeparator(ww.textNode.getText(), 0);
+				}
+				else {
+					// We are on the text node immediately after a bookmark.
+					// The bookmark is immediately followed by text
+					// we should skip that text (since we skip the word the marker is on)
+					// And instead start on the next word after the next space-like character.
+					var nextSpace = ww.getOffsetToNextSeparator(ww.textNode.getText(), 0);
+					ww.offset = ww.getOffsetToNextNonSeparator(ww.textNode.getText(), nextSpace);
+				}
+			}
+		},
 		normalizeWord: function (word) {
 			// hex 200b = 8203 = zerowidth space
 			return word.replace(/\u200B/g, '');
-		},
-		getTextNodePositionFromSelection: function(selection) {
-			var ranges = selection.getRanges(),
-				selectionRange,
-				selectionNode,
-				selectionOffset,
-				selectionChildren;
-
-			// sometimes you can have a selection
-			// which has no ranges...?!
-			if (ranges.length === 0) {
-				return null;
-			}
-
-			selectionRange = selection.getRanges()[0];
-			selectionNode = selectionRange.startContainer;
-			selectionOffset = selectionRange.startOffset;
-			selectionChildren = selectionNode.getChildren ? selectionNode.getChildren() : null;
-
-			if (!selectionRange.collapsed) {
-				return null;
-			}
-
-			while (selectionNode.type !== CKEDITOR.NODE_TEXT && selectionChildren.count() !== 0) {
-				if (selectionOffset === 0) {
-					// is at the start of an element, attempt to move into its first child, at the start
-					// either the child will be a text node (yay) or another element which may or may not contain a text node
-					selectionRange.moveToPosition(selectionChildren.getItem(0), CKEDITOR.POSITION_AFTER_START)
-				}
-				else if (selectionOffset >= selectionChildren.count()) {
-					// selection is past the end element, attempt to move into its last child, at the end
-					selectionRange.moveToPosition(selectionChildren.getItem(selectionChildren.count()-1), CKEDITOR.POSITION_BEFORE_END)
-				}
-				else {
-					// selection is somewhere in between children of the container
-					// move into the child that follows the selection and place the cursor at the start
-					selectionRange.moveToPosition(selectionChildren.getItem(selectionOffset), CKEDITOR.POSITION_AFTER_START)
-				}
-
-				if (selectionNode.equals(selectionRange.startContainer) && selectionOffset === selectionRange.startOffset) {
-					// We hit a crazy case (usually breaks or other non-text containing elements in between)
-					// where the selection doesn't actually move.
-					// We are unable to traverse any further, so abort.
-					return null;
-				}
-
-
-				// update stuff for next iteration
-
-				selectionNode = selectionRange.startContainer;
-				selectionOffset = selectionRange.startOffset;
-
-				if (selectionNode.type === CKEDITOR.NODE_ELEMENT) {
-					// Text nodes don't have children, but if it's a text node,
-					// we won't actually have a next iteration anyway.
-					selectionChildren = selectionNode.getChildren();
-				}
-			}
-
-			if (selectionNode.type === CKEDITOR.NODE_TEXT) {
-				return {
-					node: selectionNode,
-					offset: selectionOffset
-				};
-			}
-			else {
-				// we somehow managed to exhaust all possible nodes without finding a text node
-				return null;
-			}
 		},
 		getNextWord: function () {
 			var ww = this;
@@ -226,18 +234,6 @@
 			var wordRange = ww.origRange.clone();
 			var i;
 			var text;
-			var selection = ww.editor.getSelection();
-			var selectionNode, selectionOffset;
-			var isSelectedWord = false;
-
-
-			if (selection) {
-				var selectionMarker = ww.getTextNodePositionFromSelection(selection);
-				if (selectionMarker) {
-					selectionNode = selectionMarker.node;
-					selectionOffset = selectionMarker.offset;
-				}
-			}
 
 			if (currentTextNode === null) {
 				return null;
@@ -259,7 +255,7 @@
 						wordRange.setEnd(currentTextNode, i);
 
 						ww.offset = ww.getOffsetToNextNonSeparator(text, i);
-						if (word && !isSelectedWord) {
+						if (word) {
 							// if you hit a word separator and there is word text, return it
 							return {word: ww.normalizeWord(word), range: wordRange};
 						}
@@ -268,21 +264,9 @@
 							// non-separator text
 							wordRange.setStart(currentTextNode, ww.offset);
 
-							// new word
-							isSelectedWord = false;
 							word = '';
 						}
 					}
-					else if (currentTextNode.equals(selectionNode) && selectionOffset === i) {
-						isSelectedWord = true;
-					}
-				}
-				// catch case where the caret was touching the back of the text node
-				// normally this should only be at the very end of the block
-				// since we prefer to put the caret at the start of text nodes
-				// but things can be weird.
-				if (currentTextNode.equals(selectionNode) && selectionOffset === i) {
-					isSelectedWord = true;
 				}
 
 				word += text.substr(ww.offset);
@@ -292,10 +276,23 @@
 
 				ww.textNode = currentTextNode;
 			}
-			// reached the end of block,
-			// so just return what we've walked
-			// of the current word.
-			if (word && !isSelectedWord) return {word: ww.normalizeWord(word), range: wordRange};
+			// we either exhausted the block or hit our bookmark
+
+			if (ww.lastBookmark) {
+				// We stopped due to hitting a bookmark.
+				// Initialize an additional node walker at the range following the bookmark.
+				wordRange.moveToClosestEditablePosition(ww.lastBookmark, true);
+				ww.initializeNodeWalker(wordRange);
+				ww.lastBookmark = null;
+				return ww.getNextWord();
+			}
+			else if (word) {
+				// this is the remnants of the word
+				return {
+					word: ww.normalizeWord(word),
+					range: wordRange
+				};
+			}
 		}
 	};
 
@@ -815,7 +812,9 @@
 					word;
 
 				range.selectNodeContents(block);
+				var bookmarks = editor.getSelection().createBookmarks(true);
 				var wordwalker = new self.WordWalker(editor, range);
+				editor.getSelection().selectBookmarks(bookmarks); // we may not need to select, just blow it up
 
 				while (currentWordObj = wordwalker.getNextWord()) {
 					word = currentWordObj.word;
