@@ -179,9 +179,9 @@
 			// determine what the new range should be
 			var ww = this;
 			var newRange = ww.origRange.clone();
-			var isFirst = true;
+			var skipFirstWord = false;
 			if (lastRangeFound) {
-				isFirst = false;
+				skipFirstWord = true;
 				newRange.setStart(lastRangeFound.endContainer, lastRangeFound.endOffset);
 			}
 
@@ -196,7 +196,7 @@
 			// (if the bookmark was in the middle of a word)
 			// and move to the next word (if there are multiple spaces in between)
 
-			if (ww.textNode && !isFirst) {
+			if (ww.textNode && skipFirstWord) {
 				if (ww.hitWordBreak) {
 					// we hit a word breaking element (br) immediately after resuming
 					ww.hitWordBreak = false;
