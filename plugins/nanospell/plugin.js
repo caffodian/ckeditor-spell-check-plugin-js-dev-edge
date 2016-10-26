@@ -660,7 +660,10 @@
 					parseRpc(data, words);
 					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
-						editor.fire(EVENT_NAMES.START_RENDER, rootElement);
+						editor.fire(EVENT_NAMES.START_RENDER, {
+							rootElement: rootElement,
+							needsBookmarkCreated: false,
+						});
 					}
 				};
 				var data = wordsToRPC(words, lang);
@@ -721,12 +724,19 @@
 			}
 
 			function render(event) {
-				var bookmarks = editor.getSelection().createBookmarks(true),
-					rootElement = event.data;
+				var rootElement = event.data.rootElement,
+					needsBookmarkCreated = event.data.needsBookmarkCreated,
+					bookmarks;
 
+				if (needsBookmarkCreated) {
+					bookmarks = editor.getSelection().createBookmarks(true);
+				}
+				
 				self.markTypos(editor, rootElement);
 
-				editor.getSelection().selectBookmarks(bookmarks);
+				if (needsBookmarkCreated) {
+					editor.getSelection().selectBookmarks(bookmarks);
+				}
 
 				rootElement.setCustomData('spellCheckInProgress', false);
 				self._timer = null;
@@ -833,7 +843,12 @@
 				else {
 					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
-						editor.fire(EVENT_NAMES.START_RENDER, rootElement);
+						editor.fire(
+							EVENT_NAMES.START_RENDER,
+							{
+								rootElement: rootElement,
+								needsBookmarkCreated: false,
+							});
 					}
 				}
 			}
