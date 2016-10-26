@@ -816,11 +816,10 @@
 					}
 				}
 
-				editor.getSelection().selectBookmarks(bookmarks); // we may not need to select, just blow it up
-
 				if (blockList.length > 0) {
 					startCheckOrMarkWords(getUnknownWords(combinedText), blockList);
 				}
+				editor.getSelection().selectBookmarks(bookmarks); // we may not need to select, just blow it up
 			}
 
 			function getWords(block) {
@@ -849,7 +848,6 @@
 					});
 				}
 				else {
-					bookmarks = editor.getSelection().createBookmarks(true);
 					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
 						editor.fire(
@@ -859,8 +857,6 @@
 								needsBookmarkCreated: false,
 							});
 					}
-					editor.getSelection().selectBookmarks(bookmarks);
-
 				}
 			}
 
