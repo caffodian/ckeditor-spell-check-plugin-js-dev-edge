@@ -657,7 +657,9 @@
 				var blockList = event.data.blockList;
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
+					var bookmarks;
 					parseRpc(data, words);
+					bookmarks = editor.getSelection().createBookmarks(true);
 					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
 						editor.fire(EVENT_NAMES.START_RENDER, {
@@ -665,6 +667,8 @@
 							needsBookmarkCreated: false,
 						});
 					}
+					editor.getSelection().selectBookmarks(bookmarks);
+
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
@@ -811,7 +815,7 @@
 						blockList = [];
 					}
 				}
-				
+
 				editor.getSelection().selectBookmarks(bookmarks); // we may not need to select, just blow it up
 
 				if (blockList.length > 0) {
@@ -837,6 +841,7 @@
 			}
 
 			function startCheckOrMarkWords(words, blockList) {
+				var bookmarks;
 				if (words.length > 0) {
 					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
 						words: words,
@@ -844,6 +849,7 @@
 					});
 				}
 				else {
+					bookmarks = editor.getSelection().createBookmarks(true);
 					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
 						editor.fire(
@@ -853,6 +859,8 @@
 								needsBookmarkCreated: false,
 							});
 					}
+					editor.getSelection().selectBookmarks(bookmarks);
+
 				}
 			}
 
