@@ -731,7 +731,7 @@
 				if (needsBookmarkCreated) {
 					bookmarks = editor.getSelection().createBookmarks(true);
 				}
-				
+
 				self.markTypos(editor, rootElement);
 
 				if (needsBookmarkCreated) {
@@ -799,7 +799,8 @@
 				var combinedText = '',
 					block,
 					blockList = [],
-					iterator = range.createIterator();
+					iterator = range.createIterator(),
+					bookmarks = editor.getSelection().createBookmarks(true);
 				while (( block = iterator.getNextParagraph() )) {
 					block.setCustomData('spellCheckInProgress', true);
 					combinedText += getWords(block) + ' ';
@@ -810,6 +811,9 @@
 						blockList = [];
 					}
 				}
+				
+				editor.getSelection().selectBookmarks(bookmarks); // we may not need to select, just blow it up
+
 				if (blockList.length > 0) {
 					startCheckOrMarkWords(getUnknownWords(combinedText), blockList);
 				}
@@ -822,9 +826,8 @@
 					word;
 
 				range.selectNodeContents(block);
-				var bookmarks = editor.getSelection().createBookmarks(true);
+
 				var wordwalker = new self.WordWalker(editor, range);
-				editor.getSelection().selectBookmarks(bookmarks); // we may not need to select, just blow it up
 
 				while (currentWordObj = wordwalker.getNextWord()) {
 					word = currentWordObj.word;
