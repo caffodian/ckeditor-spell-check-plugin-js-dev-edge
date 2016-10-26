@@ -663,7 +663,7 @@
 					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
 						editor.fire(EVENT_NAMES.START_RENDER, {
-							rootElement: rootElement,
+							root: rootElement,
 							needsBookmarkCreated: false,
 						});
 					}
@@ -728,7 +728,7 @@
 			}
 
 			function render(event) {
-				var rootElement = event.data.rootElement,
+				var rootElement = event.data.root,
 					needsBookmarkCreated = event.data.needsBookmarkCreated,
 					bookmarks;
 
@@ -855,7 +855,7 @@
 						editor.fire(
 							EVENT_NAMES.START_RENDER,
 							{
-								rootElement: rootElement,
+								root: rootElement,
 								needsBookmarkCreated: false,
 							});
 					}
