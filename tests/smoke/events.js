@@ -105,7 +105,7 @@
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
 				observer = observeSpellCheckEvents(editor),
-				starterHtml = '<ol><li id="a">something<ul><li id="b">somethingnested^</li></ul></li></ol>';
+				starterHtml = '<ol><li id="a">something<ul><li id="b">somethingnested</li></ul></li></ol> ^';
 
 				bot.setHtmlWithSelection(starterHtml);
 
