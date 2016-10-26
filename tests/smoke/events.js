@@ -221,7 +221,7 @@
 				event = events[i];
 				if (event.name === 'spellCheckComplete') {
 					continue;
-				} else if (event.name === 'startCheckWordsAjax') {
+				} else if (event.name === 'startCheckWordsAjax' || event.name === 'startRender') {
 					root = event.data.root;
 				} else {
 					root = event.data;
