@@ -44,7 +44,7 @@
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
 				observer = observeSpellCheckEvents(editor),
-				starterHtml = '<p>asdf jkl dzxda</p>';
+				starterHtml = '<p>asdf jkl dzxda ^</p>';
 
 			bot.setHtmlWithSelection(starterHtml);
 
