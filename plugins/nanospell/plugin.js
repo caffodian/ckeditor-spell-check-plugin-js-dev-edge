@@ -804,7 +804,7 @@
 					block,
 					blockList = [],
 					iterator = range.createIterator(),
-					bookmarks = editor.getSelection().createBookmarks(true);
+					bookmarks = editor.getSelection().createBookmarks2(false);
 				while (( block = iterator.getNextParagraph() )) {
 					block.setCustomData('spellCheckInProgress', true);
 					combinedText += getWords(block) + ' ';
