@@ -44,7 +44,7 @@
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
 				observer = observeSpellCheckEvents(editor),
-				starterHtml = '<p>asdf jkl dzxda</p>';
+				starterHtml = '<p>asdf jkl dzxda ^</p>';
 
 			bot.setHtmlWithSelection(starterHtml);
 
@@ -105,46 +105,48 @@
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
 				observer = observeSpellCheckEvents(editor),
-				starterHtml = '<ol><li id="a">something<ul><li id="b">somethingnested^</li></ul></li></ol>';
+				starterHtml = '<ol><li id="a">something<ul><li id="b">somethingnested blah^</li></ul></li></ol>';
 
-				bot.setHtmlWithSelection(starterHtml);
+			// the second list item must have two words, because the word at caret is ignored
 
-				var doc = editor.document,
+			bot.setHtmlWithSelection(starterHtml);
+
+			var doc = editor.document,
 				outer = doc.getById('a'),
 				inner = doc.getById('b');
 
-				resumeAfter(editor, 'spellCheckComplete', completeFirstSpellcheck);
+			resumeAfter(editor, 'spellCheckComplete', completeFirstSpellcheck);
 
-				// wait for initial spellcheck to complete
+			// wait for initial spellcheck to complete
+			wait();
+
+			function completeFirstSpellcheck() {
+
+				observer.assert(["spellCheckComplete", "startRender", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
+
+				// set outer li to show that a spellcheck is in progress
+				outer.setCustomData('spellCheckInProgress', true);
+
+				// clear observer events after initial spellcheck
+				observer = observeSpellCheckEvents(editor);
+
+				// spacebar triggers spellcheck on inner li
+				editor.editable().fire('keydown', new CKEDITOR.dom.event({
+					keyCode: 32,
+					ctrlKey: false,
+					shiftKey: false
+				}));
+
+				resumeAfter(editor, 'spellCheckAbort', abortedInnerSpellcheck);
+
 				wait();
 
-				function completeFirstSpellcheck() {
+			};
 
-					observer.assert(["spellCheckComplete", "startRender", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
-
-					// set outer li to show that a spellcheck is in progress
-					outer.setCustomData('spellCheckInProgress', true);
-
-					// clear observer events after initial spellcheck
-					observer = observeSpellCheckEvents(editor);
-
-					// spacebar triggers spellcheck on inner li
-					editor.editable().fire('keydown', new CKEDITOR.dom.event({
-						keyCode: 32,
-						ctrlKey: false,
-						shiftKey: false
-					}));
-
-					resumeAfter(editor, 'spellCheckAbort', abortedInnerSpellcheck);
-
-					wait();
-
-				};
-
-				function abortedInnerSpellcheck() {
-					observer.assertRootIs(inner);
-					observer.assert(["spellCheckAbort"]);
-				}
+			function abortedInnerSpellcheck() {
+				observer.assertRootIs(inner);
+				observer.assert(["spellCheckAbort"]);
+			}
 		},
 		'test spellcheck can batch ajax calls for a document with multiple blocks': function() {
 			var bot = this.editorBot,
@@ -221,7 +223,7 @@
 				event = events[i];
 				if (event.name === 'spellCheckComplete') {
 					continue;
-				} else if (event.name === 'startCheckWordsAjax') {
+				} else if (event.name === 'startCheckWordsAjax' || event.name === 'startRender') {
 					root = event.data.root;
 				} else {
 					root = event.data;

@@ -657,11 +657,18 @@
 				var blockList = event.data.blockList;
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
+					var bookmarks;
 					parseRpc(data, words);
+					bookmarks = editor.getSelection().createBookmarks(true);
 					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
-						editor.fire(EVENT_NAMES.START_RENDER, rootElement);
+						editor.fire(EVENT_NAMES.START_RENDER, {
+							root: rootElement,
+							needsBookmarkCreated: false,
+						});
 					}
+					editor.getSelection().selectBookmarks(bookmarks);
+
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
@@ -721,12 +728,19 @@
 			}
 
 			function render(event) {
-				var bookmarks = editor.getSelection().createBookmarks(true),
-					rootElement = event.data;
+				var rootElement = event.data.root,
+					needsBookmarkCreated = event.data.needsBookmarkCreated,
+					bookmarks;
+
+				if (needsBookmarkCreated) {
+					bookmarks = editor.getSelection().createBookmarks(true);
+				}
 
 				self.markTypos(editor, rootElement);
 
-				editor.getSelection().selectBookmarks(bookmarks);
+				if (needsBookmarkCreated) {
+					editor.getSelection().selectBookmarks(bookmarks);
+				}
 
 				rootElement.setCustomData('spellCheckInProgress', false);
 				self._timer = null;
@@ -789,7 +803,8 @@
 				var combinedText = '',
 					block,
 					blockList = [],
-					iterator = range.createIterator();
+					iterator = range.createIterator(),
+					bookmarks = editor.getSelection().createBookmarks2(false);
 				while (( block = iterator.getNextParagraph() )) {
 					block.setCustomData('spellCheckInProgress', true);
 					combinedText += getWords(block) + ' ';
@@ -800,9 +815,11 @@
 						blockList = [];
 					}
 				}
+
 				if (blockList.length > 0) {
 					startCheckOrMarkWords(getUnknownWords(combinedText), blockList);
 				}
+				editor.getSelection().selectBookmarks(bookmarks); // we may not need to select, just blow it up
 			}
 
 			function getWords(block) {
@@ -812,9 +829,8 @@
 					word;
 
 				range.selectNodeContents(block);
-				var bookmarks = editor.getSelection().createBookmarks(true);
+
 				var wordwalker = new self.WordWalker(editor, range);
-				editor.getSelection().selectBookmarks(bookmarks); // we may not need to select, just blow it up
 
 				while (currentWordObj = wordwalker.getNextWord()) {
 					word = currentWordObj.word;
@@ -824,6 +840,7 @@
 			}
 
 			function startCheckOrMarkWords(words, blockList) {
+				var bookmarks;
 				if (words.length > 0) {
 					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
 						words: words,
@@ -833,7 +850,12 @@
 				else {
 					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
-						editor.fire(EVENT_NAMES.START_RENDER, rootElement);
+						editor.fire(
+							EVENT_NAMES.START_RENDER,
+							{
+								root: rootElement,
+								needsBookmarkCreated: false,
+							});
 					}
 				}
 			}
