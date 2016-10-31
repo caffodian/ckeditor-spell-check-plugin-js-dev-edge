@@ -804,7 +804,7 @@
 					block,
 					blockList = [],
 					iterator = range.createIterator(),
-					bookmarks = editor.getSelection().createBookmarks2(false);
+					bookmarks = editor.getSelection().createBookmarks(false);
 				while (( block = iterator.getNextParagraph() )) {
 					block.setCustomData('spellCheckInProgress', true);
 					combinedText += getWords(block) + ' ';
@@ -840,7 +840,6 @@
 			}
 
 			function startCheckOrMarkWords(words, blockList) {
-				var bookmarks;
 				if (words.length > 0) {
 					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
 						words: words,
