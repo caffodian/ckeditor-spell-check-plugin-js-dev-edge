@@ -633,8 +633,10 @@
 				}
 
 				if (spellCheckSpan) {
+					editor.lockSelection();
 					var bookmarks = editor.getSelection().createBookmarks(true);
 					self.unwrapTypoSpan(spellCheckSpan);
+					editor.unlockSelection();
 					editor.getSelection().selectBookmarks(bookmarks);
 				}
 
@@ -664,6 +666,7 @@
 				var callback = function (data) {
 					var bookmarks;
 					parseRpc(data, words);
+					editor.lockSelection();
 					bookmarks = editor.getSelection().createBookmarks(true);
 					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
@@ -672,8 +675,8 @@
 							needsBookmarkCreated: false,
 						});
 					}
+					editor.unlockSelection();
 					editor.getSelection().selectBookmarks(bookmarks);
-
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
