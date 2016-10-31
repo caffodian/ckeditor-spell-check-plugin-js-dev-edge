@@ -824,6 +824,10 @@
 			function getWords(block) {
 				var range = editor.createRange(),
 					currentWordObj,
+					// a bookmark2 doesn't actually create a DOM node,
+					// but doesn't maintain its position through DOM mutations.
+					// We can create a bookmark2 for scanning purposes without restoring it
+					// And there will be no residual span in the DOM, like with bookmark(1)
 					bookmarks = editor.getSelection().createBookmarks2(false),
 					words = [],
 					word;
