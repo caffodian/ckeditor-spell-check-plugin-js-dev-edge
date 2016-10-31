@@ -419,7 +419,9 @@
 				icon: this.path + 'icons/nanospell.png'
 			});
 			editor.on("key", function (k) {
-				if (k.data.domEvent.$.ctrlKey) {
+				if (k.data.domEvent.$.ctrlKey || k.data.domEvent.$.metaKey) {
+					// a bizarre IE11 bug occurs if you attempt to get the
+					// current element after undoing a recently spellchecked word
 					return;
 				}
 				keyHandler(k.data.keyCode)
