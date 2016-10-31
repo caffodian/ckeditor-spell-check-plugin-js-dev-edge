@@ -803,8 +803,7 @@
 				var combinedText = '',
 					block,
 					blockList = [],
-					iterator = range.createIterator(),
-					bookmarks = editor.getSelection().createBookmarks(false);
+					iterator = range.createIterator();
 				while (( block = iterator.getNextParagraph() )) {
 					block.setCustomData('spellCheckInProgress', true);
 					combinedText += getWords(block) + ' ';
@@ -819,12 +818,13 @@
 				if (blockList.length > 0) {
 					startCheckOrMarkWords(getUnknownWords(combinedText), blockList);
 				}
-				editor.getSelection().selectBookmarks(bookmarks); // we may not need to select, just blow it up
+
 			}
 
 			function getWords(block) {
 				var range = editor.createRange(),
 					currentWordObj,
+					bookmarks = editor.getSelection().createBookmarks(false),
 					words = [],
 					word;
 
@@ -836,6 +836,8 @@
 					word = currentWordObj.word;
 					if (word) words.push(word);
 				}
+
+				editor.getSelection().selectBookmarks(bookmarks);
 				return words.join(" ");
 			}
 

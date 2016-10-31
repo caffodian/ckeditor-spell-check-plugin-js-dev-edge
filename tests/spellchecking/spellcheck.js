@@ -37,7 +37,8 @@
 					"missspelling": ["misspelling"],
 					"qui": ["quote", "quick"],
 					"quic": ["quote", "quick"],
-					'quiasdf': ["quickly"],
+					"quiasdf": ["quickly"],
+					"wiff": ["with"]
 				}
 			};
 
@@ -56,7 +57,7 @@
 				tc = this,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
-				starterHtml = '<p>Paragraph with missspelling</p>';
+				starterHtml = '<p>Paragraph with missspelling ^</p>';
 
 			bot.setHtmlWithSelection(starterHtml);
 
@@ -68,12 +69,34 @@
 
 			wait();
 		},
+		'test cursor stability when words are skipped in spellcheck': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter,
+				starterHtml = '<p>Paragraph wi^ff missspelling</p>';
+
+			bot.setHtmlWithSelection(starterHtml);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+				var htmlWithSelection = bender.tools.getHtmlWithSelection(editor);
+
+				// check the typo is still marked
+				tc.assertHtml('<p>Paragraph wiff <span class="nanospell-typo">missspelling</span></p>', paragraph.getOuterHtml());
+
+				tc.assertHtml(starterHtml, htmlWithSelection);
+
+			});
+
+			wait();
+		},
 		'test it can spellcheck across inline style elements': function () {
 			var bot = this.editorBot,
 				tc = this,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
-				starterHtml = '<p>Paragraph with mis<b>s</b>s<i>pe</i>lling</p>';
+				starterHtml = '<p>Paragraph with mis<b>s</b>s<i>pe</i>lling ^</p>';
 
 			bot.setHtmlWithSelection(starterHtml);
 
