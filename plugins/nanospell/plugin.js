@@ -419,6 +419,9 @@
 				icon: this.path + 'icons/nanospell.png'
 			});
 			editor.on("key", function (k) {
+				if (k.data.domEvent.$.ctrlKey) {
+					return;
+				}
 				keyHandler(k.data.keyCode)
 			});
 			editor.on("focus", function () {
