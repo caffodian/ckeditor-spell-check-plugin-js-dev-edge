@@ -824,7 +824,7 @@
 			function getWords(block) {
 				var range = editor.createRange(),
 					currentWordObj,
-					bookmarks = editor.getSelection().createBookmarks(false),
+					bookmarks = editor.getSelection().createBookmarks2(false),
 					words = [],
 					word;
 
@@ -836,8 +836,7 @@
 					word = currentWordObj.word;
 					if (word) words.push(word);
 				}
-
-				editor.getSelection().selectBookmarks(bookmarks);
+				
 				return words.join(" ");
 			}
 
