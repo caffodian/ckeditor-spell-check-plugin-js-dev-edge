@@ -664,19 +664,17 @@
 				var blockList = event.data.blockList;
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
-					var bookmarks;
+					var selectionStart = editor.getSelection().getStartElement();
+					var rootElement;
 					parseRpc(data, words);
-					editor.lockSelection();
-					bookmarks = editor.getSelection().createBookmarks(true);
+
 					for (var i = 0; i < blockList.length; i++) {
-						var rootElement = blockList[i];
+						rootElement = blockList[i];
 						editor.fire(EVENT_NAMES.START_RENDER, {
 							root: rootElement,
-							needsBookmarkCreated: false,
+							needsBookmarkCreated: selectionStart ? rootElement.contains(selectionStart) || rootElement.equals(selectionStart) : null,
 						});
 					}
-					editor.unlockSelection();
-					editor.getSelection().selectBookmarks(bookmarks);
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
@@ -741,6 +739,7 @@
 					bookmarks;
 
 				if (needsBookmarkCreated) {
+					editor.lockSelection();
 					bookmarks = editor.getSelection().createBookmarks(true);
 				}
 
@@ -748,6 +747,7 @@
 
 				if (needsBookmarkCreated) {
 					editor.getSelection().selectBookmarks(bookmarks);
+					editor.unlockSelection();
 				}
 
 				rootElement.setCustomData('spellCheckInProgress', false);
@@ -848,6 +848,7 @@
 			}
 
 			function startCheckOrMarkWords(words, blockList) {
+				var selectionStart = editor.getSelection().getStartElement();
 				if (words.length > 0) {
 					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
 						words: words,
@@ -855,8 +856,6 @@
 					});
 				}
 				else {
-					editor.lockSelection();
-					var bookmarks = editor.getSelection().createBookmarks(true);
 					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
 
@@ -864,12 +863,10 @@
 							EVENT_NAMES.START_RENDER,
 							{
 								root: rootElement,
-								needsBookmarkCreated: false,
+								needsBookmarkCreated: selectionStart ? rootElement.contains(selectionStart) || rootElement.equals(selectionStart) : null,
 							});
 
 					}
-					editor.getSelection().selectBookmarks(bookmarks);
-					editor.unlockSelection();
 				}
 			}
 
