@@ -860,6 +860,7 @@
 					});
 				}
 				else {
+					editor.lockSelection();
 					var bookmarks = editor.getSelection().createBookmarks(true);
 					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
@@ -873,6 +874,7 @@
 
 					}
 					editor.getSelection().selectBookmarks(bookmarks);
+					editor.unlockSelection();
 				}
 			}
 
