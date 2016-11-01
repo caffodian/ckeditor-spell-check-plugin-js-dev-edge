@@ -37,7 +37,9 @@
 					"missspelling": ["misspelling"],
 					"qui": ["quote", "quick"],
 					"quic": ["quote", "quick"],
-					'quiasdf': ["quickly"],
+					"quiasdf": ["quickly"],
+					"skipme": ["skip me"],
+					"wiff": ["with"]
 				}
 			};
 
@@ -56,14 +58,38 @@
 				tc = this,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
-				starterHtml = '<p>Paragraph with missspelling</p>';
+				// phantom (on travis) sometimes does weird things around caret + trailing spaces
+				// so putting a word that is skipped is easier
+				starterHtml = '<p>Paragraph with missspelling skipme^</p>';
 
 			bot.setHtmlWithSelection(starterHtml);
 
 			resumeAfter(editor, 'spellCheckComplete', function () {
 				var paragraph = editor.editable().findOne('p');
 
-				tc.assertHtml('<p>Paragraph with <span class="nanospell-typo">missspelling</span></p>', paragraph.getOuterHtml());
+				tc.assertHtml('<p>Paragraph with <span class="nanospell-typo">missspelling</span> skipme</p>', paragraph.getOuterHtml());
+			});
+
+			wait();
+		},
+		'test cursor stability when words are skipped in spellcheck': function () {
+			var bot = this.editorBot,
+				tc = this,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter,
+				starterHtml = '<p>Paragraph wi^ff missspelling</p>';
+
+			bot.setHtmlWithSelection(starterHtml);
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				var paragraph = editor.editable().findOne('p');
+				var htmlWithSelection = bender.tools.getHtmlWithSelection(editor);
+
+				// check the typo is still marked
+				tc.assertHtml('<p>Paragraph wiff <span class="nanospell-typo">missspelling</span></p>', paragraph.getOuterHtml());
+
+				tc.assertHtml(starterHtml, htmlWithSelection);
+
 			});
 
 			wait();
@@ -73,14 +99,18 @@
 				tc = this,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
-				starterHtml = '<p>Paragraph with mis<b>s</b>s<i>pe</i>lling</p>';
+				starterHtml = '<p>Paragraph with mis<strong>s</strong>s<em>pe</em>lling skipme^</p>',
+				htmlWithSelection;
 
 			bot.setHtmlWithSelection(starterHtml);
 
 			resumeAfter(editor, 'spellCheckComplete', function () {
 				var paragraph = editor.editable().findOne('p');
+				htmlWithSelection = bender.tools.getHtmlWithSelection(editor);
 
-				tc.assertHtml('<p>Paragraph with <span class="nanospell-typo">mis<b>s</b>s<i>pe</i>lling</span></p>', paragraph.getOuterHtml());
+				tc.assertHtml('<p>Paragraph with <span class="nanospell-typo">mis<strong>s</strong>s<em>pe</em>lling</span> skipme</p>', paragraph.getOuterHtml());
+				tc.assertHtml(starterHtml, htmlWithSelection);
+
 			});
 
 			wait();

@@ -419,6 +419,11 @@
 				icon: this.path + 'icons/nanospell.png'
 			});
 			editor.on("key", function (k) {
+				if (k.data.domEvent.$.ctrlKey || k.data.domEvent.$.metaKey) {
+					// a bizarre IE11 bug occurs if you attempt to get the
+					// current element after undoing a recently spellchecked word
+					return;
+				}
 				keyHandler(k.data.keyCode)
 			});
 			editor.on("focus", function () {
@@ -628,8 +633,10 @@
 				}
 
 				if (spellCheckSpan) {
+					editor.lockSelection();
 					var bookmarks = editor.getSelection().createBookmarks(true);
 					self.unwrapTypoSpan(spellCheckSpan);
+					editor.unlockSelection();
 					editor.getSelection().selectBookmarks(bookmarks);
 				}
 
@@ -659,6 +666,7 @@
 				var callback = function (data) {
 					var bookmarks;
 					parseRpc(data, words);
+					editor.lockSelection();
 					bookmarks = editor.getSelection().createBookmarks(true);
 					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
@@ -667,8 +675,8 @@
 							needsBookmarkCreated: false,
 						});
 					}
+					editor.unlockSelection();
 					editor.getSelection().selectBookmarks(bookmarks);
-
 				};
 				var data = wordsToRPC(words, lang);
 				rpc(url, data, callback);
@@ -803,8 +811,7 @@
 				var combinedText = '',
 					block,
 					blockList = [],
-					iterator = range.createIterator(),
-					bookmarks = editor.getSelection().createBookmarks2(false);
+					iterator = range.createIterator();
 				while (( block = iterator.getNextParagraph() )) {
 					block.setCustomData('spellCheckInProgress', true);
 					combinedText += getWords(block) + ' ';
@@ -819,12 +826,17 @@
 				if (blockList.length > 0) {
 					startCheckOrMarkWords(getUnknownWords(combinedText), blockList);
 				}
-				editor.getSelection().selectBookmarks(bookmarks); // we may not need to select, just blow it up
+
 			}
 
 			function getWords(block) {
 				var range = editor.createRange(),
 					currentWordObj,
+					// a bookmark2 doesn't actually create a DOM node,
+					// but doesn't maintain its position through DOM mutations.
+					// We can create a bookmark2 for scanning purposes without restoring it
+					// And there will be no residual span in the DOM, like with bookmark(1)
+					bookmarks = editor.getSelection().createBookmarks2(false),
 					words = [],
 					word;
 
@@ -836,11 +848,11 @@
 					word = currentWordObj.word;
 					if (word) words.push(word);
 				}
+
 				return words.join(" ");
 			}
 
 			function startCheckOrMarkWords(words, blockList) {
-				var bookmarks;
 				if (words.length > 0) {
 					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
 						words: words,
@@ -848,15 +860,21 @@
 					});
 				}
 				else {
+					editor.lockSelection();
+					var bookmarks = editor.getSelection().createBookmarks(true);
 					for (var i = 0; i < blockList.length; i++) {
 						var rootElement = blockList[i];
+
 						editor.fire(
 							EVENT_NAMES.START_RENDER,
 							{
 								root: rootElement,
 								needsBookmarkCreated: false,
 							});
+
 					}
+					editor.getSelection().selectBookmarks(bookmarks);
+					editor.unlockSelection();
 				}
 			}
 
