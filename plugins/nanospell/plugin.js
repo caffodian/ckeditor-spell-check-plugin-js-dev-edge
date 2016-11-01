@@ -860,9 +860,9 @@
 					});
 				}
 				else {
+					var bookmarks = editor.getSelection().createBookmarks(true);
 					for (var i = 0; i < blockList.length; i++) {
-						var rootElement = blockList[i],
-							bookmarks = editor.getSelection().createBookmarks(true);
+						var rootElement = blockList[i];
 
 						editor.fire(
 							EVENT_NAMES.START_RENDER,
@@ -871,8 +871,8 @@
 								needsBookmarkCreated: false,
 							});
 
-						editor.getSelection().selectBookmarks(bookmarks);
 					}
+					editor.getSelection().selectBookmarks(bookmarks);
 				}
 			}
 
