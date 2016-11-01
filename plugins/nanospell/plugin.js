@@ -848,7 +848,7 @@
 					word = currentWordObj.word;
 					if (word) words.push(word);
 				}
-				
+
 				return words.join(" ");
 			}
 
@@ -861,13 +861,17 @@
 				}
 				else {
 					for (var i = 0; i < blockList.length; i++) {
-						var rootElement = blockList[i];
+						var rootElement = blockList[i],
+							bookmarks = editor.getSelection().createBookmarks(true);
+
 						editor.fire(
 							EVENT_NAMES.START_RENDER,
 							{
 								root: rootElement,
 								needsBookmarkCreated: false,
 							});
+
+						editor.getSelection().selectBookmarks(bookmarks);
 					}
 				}
 			}
