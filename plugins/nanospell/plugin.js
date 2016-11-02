@@ -664,7 +664,6 @@
 				var blockList = event.data.blockList;
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
-					var selectionStart = editor.getSelection().getStartElement();
 					var rootElement;
 					parseRpc(data, words);
 
@@ -672,7 +671,6 @@
 						rootElement = blockList[i];
 						editor.fire(EVENT_NAMES.START_RENDER, {
 							root: rootElement,
-							needsBookmarkCreated: selectionStart ? rootElement.contains(selectionStart) || rootElement.equals(selectionStart) : null,
 						});
 					}
 				};
@@ -739,7 +737,8 @@
 
 			function render(event) {
 				var rootElement = event.data.root,
-					needsBookmarkCreated = event.data.needsBookmarkCreated,
+					selectionStart = editor.getSelection().getStartElement(),
+					needsBookmarkCreated = selectionStart ? rootElement.contains(selectionStart) || rootElement.equals(selectionStart) : null,
 					bookmarks;
 
 				if (needsBookmarkCreated) {
@@ -852,7 +851,6 @@
 			}
 
 			function startCheckOrMarkWords(words, blockList) {
-				var selectionStart = editor.getSelection().getStartElement();
 				if (words.length > 0) {
 					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
 						words: words,
@@ -867,7 +865,6 @@
 							EVENT_NAMES.START_RENDER,
 							{
 								root: rootElement,
-								needsBookmarkCreated: selectionStart ? rootElement.contains(selectionStart) || rootElement.equals(selectionStart) : null,
 							});
 
 					}
