@@ -443,7 +443,7 @@
 				}
 				return true;
 			});
-			editor.on(EVENT_NAMES.START_RENDER, render, self);
+			editor.on(EVENT_NAMES.START_RENDER, scheduleRender, self);
 			editor.on(EVENT_NAMES.START_SCAN_WORDS, scanWords, self);
 			editor.on(EVENT_NAMES.START_CHECK_WORDS, checkWords, self);
 
@@ -731,6 +731,10 @@
 
 			function resolveAjaxHandler() {
 				return '/spellcheck/nano/';
+			}
+
+			function scheduleRender(event) {
+				setTimeout(render.bind(this, event), 0);
 			}
 
 			function render(event) {
