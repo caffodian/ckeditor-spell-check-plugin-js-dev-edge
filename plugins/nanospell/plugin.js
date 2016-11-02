@@ -444,7 +444,7 @@
 				return true;
 			});
 			editor.on(EVENT_NAMES.START_RENDER, scheduleRender, self);
-			editor.on(EVENT_NAMES.START_SCAN_WORDS, scanWords, self);
+			editor.on(EVENT_NAMES.START_SCAN_WORDS, scheduleScanWords, self);
 			editor.on(EVENT_NAMES.START_CHECK_WORDS, checkWords, self);
 
 			setUpContextMenu(editor, this.path);
@@ -580,6 +580,10 @@
 
 					editor.fire(EVENT_NAMES.START_SCAN_WORDS, rootElement);
 				}
+			}
+
+			function scheduleScanWords(event) {
+				setTimeout(scanWords.bind(this, event), 0);
 			}
 
 			function scanWords(event) {
