@@ -772,8 +772,10 @@ if (!Function.prototype.bind) {
 			function render(event) {
 				var rootElement = event.data.root,
 					selectionStart = editor.getSelection().getStartElement(),
-					needsBookmarkCreated = selectionStart ? rootElement.contains(selectionStart) || rootElement.equals(selectionStart) : null,
+					needsBookmarkCreated,
 					bookmarks;
+
+				needsBookmarkCreated = selectionStart ? rootElement.contains(selectionStart) || rootElement.equals(selectionStart) : null;
 
 				if (needsBookmarkCreated) {
 					editor.lockSelection();
