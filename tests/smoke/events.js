@@ -195,12 +195,12 @@
 			observer.events.push(evt);
 		}
 
-		editor.on('startSpellCheckOn', stdObserver);
-		editor.on('startScanWords', stdObserver);
-		editor.on('startCheckWordsAjax', stdObserver);
-		editor.on('startRender', stdObserver);
-		editor.on('spellCheckComplete', stdObserver);
-		editor.on('spellCheckAbort', stdObserver);
+		editor.on('startSpellCheckOn', stdObserver, null, null, -999);
+		editor.on('startScanWords', stdObserver, null, null, -999);
+		editor.on('startCheckWordsAjax', stdObserver, null, null, -999);
+		editor.on('startRender', stdObserver, null, null, -999);
+		editor.on('spellCheckComplete', stdObserver, null, null, -999);
+		editor.on('spellCheckAbort', stdObserver, null, null, -999);
 
 		observer.assert = function (expected) {
 			var events = observer.events;
