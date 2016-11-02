@@ -946,7 +946,7 @@
 
 						if (retval) {
 							var currentData = self.clearAllSpellCheckingSpansFromString(this.getSnapshot()),
-								prevData = self.clearAllSpellCheckingSpansFromString(this._.previousValue);
+								prevData = this._.previousValue;
 
 							retval = (retval && (prevData !== currentData))
 						}
