@@ -945,7 +945,9 @@ if (!Function.prototype.bind) {
 			}
 
 			function ignoreWord(target, word, all) {
-				var i;
+				var allInstances,
+					i,
+					numInstances;
 				if (all) {
 					ignorecache[word.toLowerCase()] = true;
 					for (i in suggestionscache) {
@@ -953,8 +955,9 @@ if (!Function.prototype.bind) {
 							delete suggestionscache[i];
 						}
 					}
-					var allInstances = editor.document.find('span.nanospell-typo');
-					for (i = 0; i < allInstances.count(); i++) {
+					allInstances = editor.document.find('span.nanospell-typo');
+					numInstances = allInstances.count();
+					for (i = 0; i < numInstances; i++) {
 						var item = allInstances.getItem(i);
 						var text = item.getText();
 						if (text == word) {
