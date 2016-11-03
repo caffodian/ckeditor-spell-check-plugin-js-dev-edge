@@ -49,7 +49,7 @@
 			bot.setHtmlWithSelection(starterHtml);
 
 			resumeAfter(editor, 'spellCheckComplete', function () {
-				observer.assert(["spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"])
+				observer.assert(["startScanWords", "startCheckWordsAjax", "startRender", "spellCheckComplete"])
 			});
 
 			wait();
@@ -65,7 +65,7 @@
 				// first run checks the whole document.  Since the spellcheck first
 				// splits the document into blocks, all events other than
 				// "startScanWords" and "startCheckWordsAjax" will be fired twice.
-				observer.assert(["spellCheckComplete", "startRender", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
+				observer.assert(["startScanWords", "startCheckWordsAjax", "startRender", "spellCheckComplete", "startRender", "spellCheckComplete"]);
 
 				// make a new observer to clear the events
 
@@ -89,7 +89,7 @@
 				var secondParagraph = editor.editable().getChild(1);
 
 				// no ajax call required on the second run, since words are repeats.
-				observer.assert(["spellCheckComplete", "startRender", "startScanWords"]);
+				observer.assert(["startScanWords", "startRender", "spellCheckComplete"]);
 				observer.assertRootIs(secondParagraph);
 			}
 
@@ -122,7 +122,7 @@
 
 			function completeFirstSpellcheck() {
 
-				observer.assert(["spellCheckComplete", "startRender", "spellCheckComplete", "startRender", "startCheckWordsAjax", "startScanWords"]);
+				observer.assert(["startScanWords", "startCheckWordsAjax", "startRender", "spellCheckComplete", "startRender", "spellCheckComplete"]);
 
 				// set outer li to show that a spellcheck is in progress
 				outer.setCustomData('spellCheckInProgress', true);
@@ -195,12 +195,12 @@
 			observer.events.push(evt);
 		}
 
-		editor.on('startSpellCheckOn', stdObserver);
-		editor.on('startScanWords', stdObserver);
-		editor.on('startCheckWordsAjax', stdObserver);
-		editor.on('startRender', stdObserver);
-		editor.on('spellCheckComplete', stdObserver);
-		editor.on('spellCheckAbort', stdObserver);
+		editor.on('startSpellCheckOn', stdObserver, null, null, -999);
+		editor.on('startScanWords', stdObserver, null, null, -999);
+		editor.on('startCheckWordsAjax', stdObserver, null, null, -999);
+		editor.on('startRender', stdObserver, null, null, -999);
+		editor.on('spellCheckComplete', stdObserver, null, null, -999);
+		editor.on('spellCheckAbort', stdObserver, null, null, -999);
 
 		observer.assert = function (expected) {
 			var events = observer.events;
