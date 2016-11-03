@@ -584,7 +584,7 @@
 			}
 
 			function scheduleScanWords(event) {
-				setTimeout(scanWords.bind(this, event), 0);
+				setTimeout(scanWords, 0, event);
 			}
 
 			function scanWords(event) {
@@ -737,7 +737,7 @@
 			}
 
 			function scheduleRender(event) {
-				setTimeout(render.bind(this, event), 0);
+				setTimeout(render, 0, event);
 			}
 
 			function render(event) {
