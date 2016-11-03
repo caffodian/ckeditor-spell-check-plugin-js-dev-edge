@@ -28,7 +28,8 @@ var config = {
         ckeditor: {
             path: '.',
             files: [
-                'ckeditor.js'
+                'ckeditor.js',
+				'tests/polyfills/bind.js'
             ]
         }
     },
