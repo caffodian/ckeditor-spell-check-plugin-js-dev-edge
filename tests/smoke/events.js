@@ -65,7 +65,10 @@
 				// first run checks the whole document.  Since the spellcheck first
 				// splits the document into blocks, all events other than
 				// "startScanWords" and "startCheckWordsAjax" will be fired twice.
-				observer.assert(["startScanWords", "startCheckWordsAjax", "startRender", "spellCheckComplete", "startRender", "spellCheckComplete"]);
+				// The `render` function which fires "spellCheckComplete" is now
+				// scheduled as a 0 ms timeout.  "startRender" fires before the scheduling of that
+				// function.
+				observer.assert(["startScanWords", "startCheckWordsAjax", "startRender", "startRender", "spellCheckComplete", "spellCheckComplete"]);
 
 				// make a new observer to clear the events
 
