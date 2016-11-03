@@ -66,8 +66,9 @@
 				// splits the document into blocks, all events other than
 				// "startScanWords" and "startCheckWordsAjax" will be fired twice.
 				// The `render` function which fires "spellCheckComplete" is now
-				// scheduled as a 0 ms timeout.  "startRender" fires before the scheduling of that
-				// function.
+				// scheduled as a 0 ms timeout.  "startRender" fires to trigger
+				// the scheduling of that timeout, but the timeouts do not
+				// actually fire until all of them have been registered
 				observer.assert(["startScanWords", "startCheckWordsAjax", "startRender", "startRender", "spellCheckComplete", "spellCheckComplete"]);
 
 				// make a new observer to clear the events
