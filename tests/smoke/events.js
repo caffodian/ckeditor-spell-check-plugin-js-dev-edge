@@ -125,7 +125,7 @@
 
 			function completeFirstSpellcheck() {
 
-				observer.assert(["startScanWords", "startCheckWordsAjax", "startRender", "spellCheckComplete", "startRender", "spellCheckComplete"]);
+				observer.assert(["startScanWords", "startCheckWordsAjax", "startRender", "startRender", "spellCheckComplete", "spellCheckComplete"]);
 
 				// set outer li to show that a spellcheck is in progress
 				outer.setCustomData('spellCheckInProgress', true);
