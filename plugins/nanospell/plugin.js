@@ -807,6 +807,7 @@
 					if (!uniqueWords[word] && self.validWordToken(word) && (typeof(spellcache[word]) === 'undefined')) {
 						words.push(word);
 						uniqueWords[word] = true;
+						spellcache[word] = true; // mark the word as correct, when the RPC returns, it will set this properly.
 					}
 				}
 				return words;
