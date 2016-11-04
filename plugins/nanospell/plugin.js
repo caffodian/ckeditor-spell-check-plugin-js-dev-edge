@@ -20,6 +20,7 @@
 
 (function () {
 	'use strict';
+
 	var editorHasFocus = false;
 	var spellDelay = 250;
 	var spellFastAfterSpacebar = true;
@@ -48,6 +49,7 @@
 		SPELLCHECK_ABORT: 'spellCheckAbort'
 	};
 	var BLOCK_REQUEST_LIMIT = 5;
+	var WORD_REQUEST_LIMIT = 200;
 
 	function normalizeQuotes(word) {
 		return word.replace(/[\u2018\u2019]/g, "'");
@@ -383,6 +385,7 @@
 			this.suggestions = new SuggestionsStorage();
 			// set the maximum number of block elements spellchecked per AJAX request
 			BLOCK_REQUEST_LIMIT = this.settings.blockRequestLimit || BLOCK_REQUEST_LIMIT;
+			WORD_REQUEST_LIMIT = this.settings.wordrequestLimit || WORD_REQUEST_LIMIT;
 			editor.addCommand('nanospell', {
 				exec: function (editor) {
 					if (!commandIsActive) {
@@ -817,23 +820,23 @@
 			 for a given range, get the unique words in it that we don't have a spellcheck status for
 			 */
 			function scanWordsInRange(range) {
-				var combinedText = '',
+				var combinedWords = [],
 					block,
 					blockList = [],
 					iterator = range.createIterator();
 				while (( block = iterator.getNextParagraph() )) {
 					block.setCustomData('spellCheckInProgress', true);
-					combinedText += getWords(block) + ' ';
+					combinedWords = combinedWords.concat(getWords(block));
 					blockList.push(block);
-					if (blockList.length === BLOCK_REQUEST_LIMIT) {
-						startCheckOrMarkWords(getUnknownWords(combinedText), blockList);
-						combinedText = '';
+					if (combinedWords.length > WORD_REQUEST_LIMIT) {
+						startCheckOrMarkWords(getUnknownWords(combinedWords.join(' ')), blockList);
+						combinedWords = [];
 						blockList = [];
 					}
 				}
 
 				if (blockList.length > 0) {
-					startCheckOrMarkWords(getUnknownWords(combinedText), blockList);
+					startCheckOrMarkWords(getUnknownWords(combinedWords.join(' ')), blockList);
 				}
 
 			}
@@ -853,7 +856,7 @@
 					if (word) words.push(word);
 				}
 
-				return words.join(" ");
+				return words;
 			}
 
 			function startCheckOrMarkWords(words, blockList) {
