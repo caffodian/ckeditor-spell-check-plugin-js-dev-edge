@@ -382,7 +382,8 @@
 			}
 			lang = this.settings.dictionary || lang;
 			this.suggestions = new SuggestionsStorage();
-			this.settings.wordLimitPerRequest = this.settings.wordLimitPerRequest || DEFAULT_WORD_LIMIT_PER_REQUEST;
+			// set the maximum number of block elements spellchecked per AJAX request
+			self.settings.wordLimitPerRequest = self.settings.wordLimitPerRequest || DEFAULT_WORD_LIMIT_PER_REQUEST;
 			editor.addCommand('nanospell', {
 				exec: function (editor) {
 					if (!commandIsActive) {
@@ -825,7 +826,7 @@
 					block.setCustomData('spellCheckInProgress', true);
 					combinedWords = combinedWords.concat(getWords(block));
 					blockList.push(block);
-					if (combinedWords.length > this.settings.wordLimitPerRequest) {
+					if (combinedWords.length > self.settings.wordLimitPerRequest) {
 						startCheckOrMarkWords(getUnknownWords(combinedWords.join(' ')), blockList);
 						combinedWords = [];
 						blockList = [];
