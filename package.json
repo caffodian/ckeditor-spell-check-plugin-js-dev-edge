@@ -29,6 +29,7 @@
     "benderjs-cli": "^0.1.1",
     "benderjs-jquery": "^0.3.0",
     "benderjs-sinon": "^0.3.1",
-    "benderjs-yui": "^0.3.3"
+    "benderjs-yui": "^0.3.3",
+    "chance": "^1.0.4"
   }
 }

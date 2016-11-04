@@ -826,7 +826,7 @@
 					block.setCustomData('spellCheckInProgress', true);
 					combinedWords = combinedWords.concat(getWords(block));
 					blockList.push(block);
-					if (combinedWords.length > self.settings.wordLimitPerRequest) {
+					if (combinedWords.length >= self.settings.wordLimitPerRequest) {
 						startCheckOrMarkWords(getUnknownWords(combinedWords.join(' ')), blockList);
 						combinedWords = [];
 						blockList = [];
