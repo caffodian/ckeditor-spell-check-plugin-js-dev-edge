@@ -17,6 +17,7 @@
  * A huge thanks To Frederico Knabben and all contributirs to CKEditor for releasing and maintaining a world class javascript HTML Editor.
  * FCK and CKE have enabled a new generation of online software , without your excelent work this project would be pointless.
  */
+
 (function () {
 	'use strict';
 
@@ -443,8 +444,8 @@
 				}
 				return true;
 			});
-			editor.on(EVENT_NAMES.START_RENDER, render, self);
-			editor.on(EVENT_NAMES.START_SCAN_WORDS, scanWords, self);
+			editor.on(EVENT_NAMES.START_RENDER, scheduleRender, self);
+			editor.on(EVENT_NAMES.START_SCAN_WORDS, scheduleScanWords, self);
 			editor.on(EVENT_NAMES.START_CHECK_WORDS, checkWords, self);
 
 			setUpContextMenu(editor, this.path);
@@ -582,6 +583,10 @@
 				}
 			}
 
+			function scheduleScanWords(event) {
+				setTimeout(scanWords, 0, event);
+			}
+
 			function scanWords(event) {
 				var rootElement = event.data,
 					range = editor.createRange();
@@ -664,7 +669,6 @@
 				var blockList = event.data.blockList;
 				var url = resolveAjaxHandler();
 				var callback = function (data) {
-					var selectionStart = editor.getSelection().getStartElement();
 					var rootElement;
 					parseRpc(data, words);
 
@@ -672,7 +676,6 @@
 						rootElement = blockList[i];
 						editor.fire(EVENT_NAMES.START_RENDER, {
 							root: rootElement,
-							needsBookmarkCreated: selectionStart ? rootElement.contains(selectionStart) || rootElement.equals(selectionStart) : null,
 						});
 					}
 				};
@@ -733,10 +736,17 @@
 				return '/spellcheck/nano/';
 			}
 
+			function scheduleRender(event) {
+				setTimeout(render, 0, event);
+			}
+
 			function render(event) {
 				var rootElement = event.data.root,
-					needsBookmarkCreated = event.data.needsBookmarkCreated,
+					selectionStart = editor.getSelection().getStartElement(),
+					needsBookmarkCreated,
 					bookmarks;
+
+				needsBookmarkCreated = selectionStart ? rootElement.contains(selectionStart) || rootElement.equals(selectionStart) : null;
 
 				if (needsBookmarkCreated) {
 					editor.lockSelection();
@@ -848,7 +858,6 @@
 			}
 
 			function startCheckOrMarkWords(words, blockList) {
-				var selectionStart = editor.getSelection().getStartElement();
 				if (words.length > 0) {
 					editor.fire(EVENT_NAMES.START_CHECK_WORDS, {
 						words: words,
@@ -863,7 +872,6 @@
 							EVENT_NAMES.START_RENDER,
 							{
 								root: rootElement,
-								needsBookmarkCreated: selectionStart ? rootElement.contains(selectionStart) || rootElement.equals(selectionStart) : null,
 							});
 
 					}
@@ -910,7 +918,9 @@
 			}
 
 			function ignoreWord(target, word, all) {
-				var i;
+				var allInstances,
+					i,
+					numInstances;
 				if (all) {
 					ignorecache[word.toLowerCase()] = true;
 					for (i in suggestionscache) {
@@ -918,8 +928,9 @@
 							delete suggestionscache[i];
 						}
 					}
-					var allInstances = editor.document.find('span.nanospell-typo');
-					for (i = 0; i < allInstances.count(); i++) {
+					allInstances = editor.document.find('span.nanospell-typo');
+					numInstances = allInstances.count();
+					for (i = 0; i < numInstances; i++) {
 						var item = allInstances.getItem(i);
 						var text = item.getText();
 						if (text == word) {
@@ -942,7 +953,7 @@
 
 						if (retval) {
 							var currentData = self.clearAllSpellCheckingSpansFromString(this.getSnapshot()),
-								prevData = self.clearAllSpellCheckingSpansFromString(this._.previousValue);
+								prevData = this._.previousValue;
 
 							retval = (retval && (prevData !== currentData))
 						}
