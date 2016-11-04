@@ -48,8 +48,7 @@
 		SPELLCHECK_COMPLETE: 'spellCheckComplete',
 		SPELLCHECK_ABORT: 'spellCheckAbort'
 	};
-	var BLOCK_REQUEST_LIMIT = 5;
-	var WORD_REQUEST_LIMIT = 200;
+	var DEFAULT_WORD_LIMIT_PER_REQUEST = 200;
 
 	function normalizeQuotes(word) {
 		return word.replace(/[\u2018\u2019]/g, "'");
@@ -383,9 +382,7 @@
 			}
 			lang = this.settings.dictionary || lang;
 			this.suggestions = new SuggestionsStorage();
-			// set the maximum number of block elements spellchecked per AJAX request
-			BLOCK_REQUEST_LIMIT = this.settings.blockRequestLimit || BLOCK_REQUEST_LIMIT;
-			WORD_REQUEST_LIMIT = this.settings.wordrequestLimit || WORD_REQUEST_LIMIT;
+			this.settings.wordLimitPerRequest = this.settings.wordLimitPerRequest || DEFAULT_WORD_LIMIT_PER_REQUEST;
 			editor.addCommand('nanospell', {
 				exec: function (editor) {
 					if (!commandIsActive) {
@@ -828,7 +825,7 @@
 					block.setCustomData('spellCheckInProgress', true);
 					combinedWords = combinedWords.concat(getWords(block));
 					blockList.push(block);
-					if (combinedWords.length > WORD_REQUEST_LIMIT) {
+					if (combinedWords.length > this.settings.wordLimitPerRequest) {
 						startCheckOrMarkWords(getUnknownWords(combinedWords.join(' ')), blockList);
 						combinedWords = [];
 						blockList = [];
