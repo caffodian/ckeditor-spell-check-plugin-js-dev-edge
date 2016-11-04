@@ -20,8 +20,6 @@
 
 (function () {
 	'use strict';
-
-	var maxRequest = 200;
 	var editorHasFocus = false;
 	var spellDelay = 250;
 	var spellFastAfterSpacebar = true;
