@@ -186,6 +186,27 @@
 			});
 
 			wait();
+		},
+		'test repeat words do not get checked again': function () {
+
+			var bot = this.editorBot,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter,
+				observer = observeSpellCheckEvents(editor),
+				paragraph = makeFakeParagraphTag(200);
+
+			bot.setHtmlWithSelection(paragraph + paragraph); // two identical paragraphs at the limit.
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				// 200 words = 1 ajax call
+				observer.assertAjaxCalls(1);
+
+				// reset observer
+				observer = observeSpellCheckEvents(editor);
+
+			});
+
+			wait();
 		}
 	});
 
