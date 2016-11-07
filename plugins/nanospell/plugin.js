@@ -21,7 +21,6 @@
 (function () {
 	'use strict';
 
-	var maxRequest = 200;
 	var editorHasFocus = false;
 	var spellDelay = 250;
 	var spellFastAfterSpacebar = true;
@@ -49,7 +48,7 @@
 		SPELLCHECK_COMPLETE: 'spellCheckComplete',
 		SPELLCHECK_ABORT: 'spellCheckAbort'
 	};
-	var BLOCK_REQUEST_LIMIT = 5;
+	var DEFAULT_WORD_LIMIT_PER_REQUEST = 200;
 
 	function normalizeQuotes(word) {
 		return word.replace(/[\u2018\u2019]/g, "'");
@@ -384,7 +383,7 @@
 			lang = this.settings.dictionary || lang;
 			this.suggestions = new SuggestionsStorage();
 			// set the maximum number of block elements spellchecked per AJAX request
-			BLOCK_REQUEST_LIMIT = this.settings.blockRequestLimit || BLOCK_REQUEST_LIMIT;
+			self.settings.wordLimitPerRequest = self.settings.wordLimitPerRequest || DEFAULT_WORD_LIMIT_PER_REQUEST;
 			editor.addCommand('nanospell', {
 				exec: function (editor) {
 					if (!commandIsActive) {
@@ -809,6 +808,7 @@
 					if (!uniqueWords[word] && self.validWordToken(word) && (typeof(spellcache[word]) === 'undefined')) {
 						words.push(word);
 						uniqueWords[word] = true;
+						spellcache[word] = true; // mark the word as correct, when the RPC returns, it will set this properly.
 					}
 				}
 				return words;
@@ -818,23 +818,23 @@
 			 for a given range, get the unique words in it that we don't have a spellcheck status for
 			 */
 			function scanWordsInRange(range) {
-				var combinedText = '',
+				var combinedWords = [],
 					block,
 					blockList = [],
 					iterator = range.createIterator();
 				while (( block = iterator.getNextParagraph() )) {
 					block.setCustomData('spellCheckInProgress', true);
-					combinedText += getWords(block) + ' ';
+					combinedWords = combinedWords.concat(getWords(block));
 					blockList.push(block);
-					if (blockList.length === BLOCK_REQUEST_LIMIT) {
-						startCheckOrMarkWords(getUnknownWords(combinedText), blockList);
-						combinedText = '';
+					if (combinedWords.length >= self.settings.wordLimitPerRequest) {
+						startCheckOrMarkWords(getUnknownWords(combinedWords.join(' ')), blockList);
+						combinedWords = [];
 						blockList = [];
 					}
 				}
 
 				if (blockList.length > 0) {
-					startCheckOrMarkWords(getUnknownWords(combinedText), blockList);
+					startCheckOrMarkWords(getUnknownWords(combinedWords.join(' ')), blockList);
 				}
 
 			}
@@ -854,7 +854,7 @@
 					if (word) words.push(word);
 				}
 
-				return words.join(" ");
+				return words;
 			}
 
 			function startCheckOrMarkWords(words, blockList) {

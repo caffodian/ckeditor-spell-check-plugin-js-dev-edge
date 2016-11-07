@@ -8,10 +8,14 @@
 		config: {
 			enterMode: CKEDITOR.ENTER_P,
 			nanospell: {
-				blockRequestLimit: 5
+				wordLimitPerRequest: 200
 			}
 		}
 	};
+
+	function makeFakeParagraphTag(numWords) {
+		return '<p>' + chance.sentence({ words: numWords }) + '</p>';
+	}
 
 	bender.test({
 		setUp: function () {
@@ -54,7 +58,7 @@
 
 			wait();
 		},
-		'test future spellchecks only check the current element': function() {
+		'test future spellchecks only check the current element': function () {
 			var bot = this.editorBot,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
@@ -104,7 +108,7 @@
 			// wait for the first spellcheck
 			wait();
 		},
-		'test spellcheck on element does not occur when parent block has spellcheck in progress': function() {
+		'test spellcheck on element does not occur when parent block has spellcheck in progress': function () {
 			var bot = this.editorBot,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
@@ -152,38 +156,57 @@
 				observer.assert(["spellCheckAbort"]);
 			}
 		},
-		'test spellcheck can batch ajax calls for a document with multiple blocks': function() {
+		'test spellcheck can batch ajax calls for a document with multiple blocks exceeding the word limit': function () {
+
+			var bot = this.editorBot,
+				editor = bot.editor,
+				resumeAfter = bender.tools.resumeAfter,
+				observer = observeSpellCheckEvents(editor);
+
+			bot.setHtmlWithSelection(makeFakeParagraphTag(100) + makeFakeParagraphTag(100));
+
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				// 200 words = 1 ajax call
+				observer.assertAjaxCalls(1);
+
+				// reset observer
+				observer = observeSpellCheckEvents(editor);
+
+				// reset plugin
+				editor.execCommand('nanospellReset');
+
+				// now we have 4 blocks, 100 words each
+				bot.setHtmlWithSelection(makeFakeParagraphTag(100) + makeFakeParagraphTag(100) + makeFakeParagraphTag(100) + makeFakeParagraphTag(100));
+
+				resumeAfter(editor, 'spellCheckComplete', function () {
+					observer.assertAjaxCalls(2);
+				});
+
+				wait();
+			});
+
+			wait();
+		},
+		'test repeat words do not get checked again': function () {
+
 			var bot = this.editorBot,
 				editor = bot.editor,
 				resumeAfter = bender.tools.resumeAfter,
 				observer = observeSpellCheckEvents(editor),
-				fiveBlockHtml = '<p>This</p><p>is</p><ul><li>five</li><li>block</li></ul><p>test</p> ^',
-				sixBlockHtml = '<p>This</p><p>is</p><p>a</p><ul><li>six</li><li>block</li></ul><p>one</p> ^';
+				paragraph = makeFakeParagraphTag(200);
 
-				bot.setHtmlWithSelection(fiveBlockHtml);
+			bot.setHtmlWithSelection(paragraph + paragraph); // two identical paragraphs at the limit.
 
-				resumeAfter(editor, 'spellCheckComplete', function() {
-					// spellcheck with 5 blocks should make 1 AJAX call
-					observer.assertAjaxCalls(1);
+			resumeAfter(editor, 'spellCheckComplete', function () {
+				// 200 words = 1 ajax call
+				observer.assertAjaxCalls(1);
 
-					// reset observer
-					observer = observeSpellCheckEvents(editor);
+				// reset observer
+				observer = observeSpellCheckEvents(editor);
 
-					// reset plugin
-					editor.execCommand('nanospellReset');
+			});
 
-					bot.setHtmlWithSelection(sixBlockHtml);
-
-					resumeAfter(editor, 'spellCheckComplete', function() {
-						// spellcheck with 6 blocks should make 2 AJAX calls
-						observer.assertAjaxCalls(2);
-					});
-
-					wait();
-				});
-
-				wait();
-
+			wait();
 		}
 	});
 
@@ -193,7 +216,7 @@
 	 https://github.com/ckeditor/ckeditor-dev/blob/12f0de314fd6fbee0bc4d35d541123d283fdecc9/tests/plugins/filetools/fileloader.js#L131
 	 */
 	function observeSpellCheckEvents(editor) {
-		var observer = {events: []};
+		var observer = { events: [] };
 
 		function stdObserver(evt) {
 			observer.events.push(evt);
@@ -223,7 +246,7 @@
 				i,
 				root;
 
-			for (i=0; i<events.length; i++) {
+			for (i = 0; i < events.length; i++) {
 				event = events[i];
 				if (event.name === 'spellCheckComplete') {
 					continue;
@@ -236,13 +259,13 @@
 			}
 		};
 
-		observer.assertAjaxCalls = function(expected) {
+		observer.assertAjaxCalls = function (expected) {
 			var events = observer.events,
 				ajaxCalls = 0,
 				event,
 				i;
 
-			for (i=0; i<events.length; i++) {
+			for (i = 0; i < events.length; i++) {
 				event = events[i];
 				if (event.name === 'startCheckWordsAjax')
 					ajaxCalls++;

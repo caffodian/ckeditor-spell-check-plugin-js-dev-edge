@@ -29,7 +29,8 @@ var config = {
 			path: '.',
 			files: [
 				'ckeditor.js',
-				'tests/polyfills/bind.js'
+				'tests/polyfills/bind.js',
+				'node_modules/chance/dist/chance.min.js'
 			]
 		}
 	},
